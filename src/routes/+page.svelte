@@ -4,7 +4,6 @@
 
 <script lang="ts">
 
-    let currentHover = $state('');
     let tasks = $state([
         {
             "id": "1",
@@ -23,7 +22,6 @@
         }
     ]);
 
-    $inspect(currentHover)
 
     let todo = $derived.by(() => {
         return tasks.filter((task) => task.status === 'todo');
@@ -39,16 +37,20 @@
 
     function onDrag(event: DragEvent, id: string) {
         event.dataTransfer?.setData('text/plain', id);
-        console.log(`dragged item`);
     }
 
     function onDrop(event: DragEvent, status: string) {
-        console.log(`dropped item`)
         event.preventDefault()
+
         const taskId = event.dataTransfer?.getData("text/plain")
-        const taskIndex = tasks.findIndex((task) => task.id == taskId)
-        tasks[taskIndex].status = status
-        currentHover = ""
+        const task = tasks.find((task) => task.id === taskId)
+
+        if (task!.status == status) return
+
+        tasks = tasks.filter((task) => task.id !== taskId)
+
+        task!.status = status
+        tasks.push(task!)
     }
 
 </script>
@@ -58,62 +60,43 @@
     <h2 class="text-slate-600 pb-[80px]">Kanban boards for everyday use.</h2>
     <div class="grid grid-cols-3 gap-[12px]">
         <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
-             class:hovering={currentHover === "todo"}
-             ondragenter={() => currentHover = "todo"}
-             ondragleave={() => currentHover = ""}
              ondrop={(event) => onDrop(event, "todo")}
              ondragover={e => e.preventDefault()}
              role="none">
             <p class="font-semibold py-[12px]">To-do</p>
             {#each todo as {title, id}}
                 <div draggable="true" ondragstart={(event) => onDrag(event, id)}
-                     class="bg-white rounded-[8px] p-[12px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
+                     class="bg-white rounded-[8px] p-[16px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
                      role="none">
-                    <p class="text-slate-500 whitespace-pre-line">{title}</p>
+                    <p class="text-slate-600 whitespace-pre-line">{title}</p>
                 </div>
             {/each}
         </div>
         <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
-             class:hovering={currentHover === "doing"}
-             ondragenter={() => currentHover = "doing"}
-             ondragleave={() => currentHover = ""}
              ondrop={(event) => onDrop(event, "doing")}
              ondragover={e => e.preventDefault()}
              role="list">
             <p class="font-semibold py-[12px]">Doing</p>
             {#each doing as {title, id}}
                 <div draggable="true" ondragstart={(event) => onDrag(event, id)}
-                     class="bg-white rounded-[8px] p-[12px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
+                     class="bg-white rounded-[8px] p-[16px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
                      role="listitem">
-                    <p class="text-slate-500 whitespace-pre-line">{title}</p>
+                    <p class="text-slate-600 whitespace-pre-line">{title}</p>
                 </div>
             {/each}
         </div>
         <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
-             class:hovering={currentHover === "done"}
-             ondragenter={() => currentHover = "done"}
-             ondragleave={() => currentHover = ""}
              ondrop={(event) => onDrop(event, "done")}
              ondragover={e => e.preventDefault()}
              role="list">
             <p class="font-semibold py-[12px]">Done</p>
             {#each done as {title, id}}
                 <div draggable="true" ondragstart={(event) => onDrag(event, id)}
-                     class="bg-white rounded-[8px] p-[12px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
+                     class="bg-white rounded-[8px] p-[16px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
                      role="listitem">
-                    <p class="text-slate-500 whitespace-pre-line">{title}</p>
+                    <p class="text-slate-600 whitespace-pre-line">{title}</p>
                 </div>
             {/each}
         </div>
     </div>
 </div>
-
-<style>
-    .hovering {
-        @apply border-slate-500;
-    }
-
-    :global(.hovering) * {
-        pointer-events: none;
-    }
-</style>
