@@ -4,8 +4,6 @@
 
 <script lang="ts">
 
-    import type {Keyboard} from "@playwright/test";
-
     type Task = {
         id: string,
         status: string,
