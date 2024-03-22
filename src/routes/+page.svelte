@@ -4,6 +4,7 @@
 
 <script lang="ts">
 
+
     let tasks = $state([
         {
             "id": "1",
@@ -35,6 +36,24 @@
         return tasks.filter((task) => task.status === 'done');
     });
 
+    const columns = $derived([
+        {
+            "id": "todo",
+            "name": "To-do",
+            "tasks": todo
+        },
+        {
+            "id": "doing",
+            "name": "Doing",
+            "tasks": doing
+        },
+        {
+            "id": "done",
+            "name": "Done",
+            "tasks": done
+        }
+    ])
+
     function onDrag(event: DragEvent, id: string) {
         event.dataTransfer?.setData('text/plain', id);
     }
@@ -59,44 +78,20 @@
     <h1 class="text-slate-950 text-[32px] font-bold pt-[40px]">Simple Boards</h1>
     <h2 class="text-slate-600 pb-[80px]">Kanban boards for everyday use.</h2>
     <div class="grid grid-cols-3 gap-[12px]">
-        <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
-             ondrop={(event) => onDrop(event, "todo")}
-             ondragover={e => e.preventDefault()}
-             role="none">
-            <p class="font-semibold py-[12px]">To-do</p>
-            {#each todo as {title, id}}
-                <div draggable="true" ondragstart={(event) => onDrag(event, id)}
-                     class="bg-white rounded-[8px] p-[16px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
-                     role="none">
-                    <p class="text-slate-600 whitespace-pre-line">{title}</p>
-                </div>
-            {/each}
-        </div>
-        <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
-             ondrop={(event) => onDrop(event, "doing")}
-             ondragover={e => e.preventDefault()}
-             role="list">
-            <p class="font-semibold py-[12px]">Doing</p>
-            {#each doing as {title, id}}
-                <div draggable="true" ondragstart={(event) => onDrag(event, id)}
-                     class="bg-white rounded-[8px] p-[16px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
-                     role="listitem">
-                    <p class="text-slate-600 whitespace-pre-line">{title}</p>
-                </div>
-            {/each}
-        </div>
-        <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
-             ondrop={(event) => onDrop(event, "done")}
-             ondragover={e => e.preventDefault()}
-             role="list">
-            <p class="font-semibold py-[12px]">Done</p>
-            {#each done as {title, id}}
-                <div draggable="true" ondragstart={(event) => onDrag(event, id)}
-                     class="bg-white rounded-[8px] p-[16px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
-                     role="listitem">
-                    <p class="text-slate-600 whitespace-pre-line">{title}</p>
-                </div>
-            {/each}
-        </div>
+        {#each columns as {id, name, tasks}}
+            <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
+                 ondrop={(event) => onDrop(event, id)}
+                 ondragover={e => e.preventDefault()}
+                 role="none">
+                <p class="font-semibold py-[12px]">{name}</p>
+                {#each tasks as {title, id}}
+                    <div draggable="true" ondragstart={(event) => onDrag(event, id)}
+                         class="bg-white rounded-[8px] p-[16px] border-slate-300 border-[1px] cursor-pointer mb-[12px] skew-x-0"
+                         role="none">
+                        <div contenteditable="true" class="text-slate-600 whitespace-pre-line">{title}</div>
+                    </div>
+                {/each}
+            </div>
+        {/each}
     </div>
 </div>
