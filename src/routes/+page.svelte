@@ -46,6 +46,9 @@
         return tasks.filter((task) => task.status === "done");
     });
 
+    let addTask = $state(false);
+    let addTaskInput = $state<HTMLDivElement>();
+
     const columns = $derived([
         {
             "id": "todo",
@@ -82,8 +85,9 @@
         tasks.push(task!)
     }
 
-    function onKeyPress(event: KeyboardEvent, task: Task) {
-        if (event.key === 'Enter' && !event.shiftKey) {
+    function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
+        const isEnter = event.key === 'Enter' && !event.shiftKey
+        if (isEnter) {
             task.instance.blur()
             if (task.title === '') {
                 tasks = tasks.filter((t) => t.id !== task.id)
@@ -91,18 +95,42 @@
         }
     }
 
-    function onCreateTask() {
-        tasks.push({
-            "id": `${Date.now().toString()}`,
-            "status": "todo",
-            "title": "...",
-            "editable": false,
-        } as Task)
+    function onKeyDownCreateTask(event: KeyboardEvent) {
+        const isEnter = event.key === 'Enter' && !event.shiftKey
+        if (isEnter) {
+            const isNotEmpty = addTaskInput!.innerText.length > 0
+            if (isNotEmpty)
+                tasks.push({
+                    "id": `${Date.now().toString()}`,
+                    "status": "todo",
+                    "title": addTaskInput?.innerText,
+                    "editable": false,
+                } as Task)
+            addTaskInput!.innerText = ''
+            addTask = false
+        }
+    }
+
+    function onCreateTaskPressed() {
+        addTask = true
+        setTimeout(() => {
+            addTaskInput?.focus();
+            _setCursorAtEnd()
+        })
+    }
+
+    function _setCursorAtEnd() {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(addTaskInput!);
+        range.collapse(false);
+        selection!.removeAllRanges();
+        selection!.addRange(range);
     }
 
 </script>
 
-<div class="max-w-[960px] mx-auto">
+<div class="max-w-[960px] mx-auto px-4">
     <h1 class="text-slate-950 text-[32px] font-bold pt-[40px]">SimpleBoards</h1>
     <h2 class="text-slate-600 pb-[80px]">Kanban for the rest of us.</h2>
     <div class="grid grid-cols-3 gap-[12px]">
@@ -124,7 +152,7 @@
                                  class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
                                  onfocusin={() => task.editable = true}
                                  onfocusout={() => task.editable = false}
-                                 onkeydown={(event) => onKeyPress(event, task)}
+                                 onkeydown={(event) => onKeyDownUpdateTask(event, task)}
                                  bind:this={task.instance}
                                  bind:innerText={task.title}
                                  role="none">
@@ -133,8 +161,22 @@
                     </div>
                 {/each}
                 {#if id === "todo"}
+                    <div class="rounded-[8px] border-[1px] border-slate-300 mb-[12px] skew-x-0 cursor-pointer selected"
+                         class:hidden={!addTask}
+                         role="none">
+                        <div class="bg-white rounded-[7px] p-[16px] border-transparent border-[1px] selected">
+                            <div contenteditable="true"
+                                 class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
+                                 onfocusin={() => addTask = true}
+                                 onfocusout={() => addTask = false}
+                                 onkeydown={(event) => onKeyDownCreateTask(event)}
+                                 bind:this={addTaskInput}
+                                 role="none">
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex justify-start px-3 py-2 rounded-[8px] border-[1px] border-transparent group hover:border-slate-300 hover:bg-white cursor-pointer mb-[12px]"
-                         onclick={() => onCreateTask()}
+                         onclick={() => onCreateTaskPressed()}
                          role="none">
                         <svg xmlns="http://www.w3.org/2000/svg"
                              height="24"
