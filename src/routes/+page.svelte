@@ -3,6 +3,8 @@
 </script:head>
 
 <script lang="ts">
+    import {debounceTime, Subject, Subscription} from 'rxjs';
+    import {onDestroy, onMount} from "svelte";
 
     type Task = {
         id: string,
@@ -11,6 +13,17 @@
         editable: boolean,
         instance: HTMLDivElement,
     }
+
+    let subscription: Subscription
+    const observable = new Subject<Task>();
+
+    onMount(() => {
+        const debounceTimeInMills = debounceTime<Task>(500)
+        const debouncedObservable = observable.pipe(debounceTimeInMills)
+        subscription = debouncedObservable.subscribe(_updateInTheBackend);
+    })
+
+    onDestroy(() => subscription?.unsubscribe())
 
     let tasks = $state([
         {
@@ -85,6 +98,7 @@
         tasks.push(task!)
     }
 
+    // TODO: Breakdown into two different functions onKeyDownUpdateTask/updateTask
     function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
         const isEnter = event.key === 'Enter' && !event.shiftKey
         if (isEnter) {
@@ -95,6 +109,7 @@
         }
     }
 
+    // TODO: Breakdown into two different functions onKeyDownCreateTask/createTask
     function onKeyDownCreateTask(event: KeyboardEvent) {
         const isEnter = event.key === 'Enter' && !event.shiftKey
         if (isEnter) {
@@ -117,6 +132,11 @@
             addTaskInput?.focus();
             _setCursorAtEnd()
         })
+    }
+
+    function _updateInTheBackend(task: Task) {
+        // TODO: Save task on the backend.
+        console.log(`Task ${task.id} is being saved in the backend...`)
     }
 
     function _setCursorAtEnd() {
