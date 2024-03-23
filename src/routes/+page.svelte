@@ -96,33 +96,44 @@
 
         task!.status = status
         tasks.push(task!)
+        observable.next(task!)
     }
 
-    // TODO: Breakdown into two different functions onKeyDownUpdateTask/updateTask
     function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
         const isEnter = event.key === 'Enter' && !event.shiftKey
         if (isEnter) {
-            task.instance.blur()
-            if (task.title === '') {
-                tasks = tasks.filter((t) => t.id !== task.id)
-            }
+            _updateTask(task)
+            observable.next(task)
         }
     }
 
-    // TODO: Breakdown into two different functions onKeyDownCreateTask/createTask
+    function _updateTask(task: Task) {
+        task.instance.blur()
+        if (task.title === '') {
+            tasks = tasks.filter((t) => t.id !== task.id)
+        }
+    }
+
     function onKeyDownCreateTask(event: KeyboardEvent) {
         const isEnter = event.key === 'Enter' && !event.shiftKey
         if (isEnter) {
-            const isNotEmpty = addTaskInput!.innerText.length > 0
-            if (isNotEmpty)
-                tasks.push({
-                    "id": `${Date.now().toString()}`,
-                    "status": "todo",
-                    "title": addTaskInput?.innerText,
-                    "editable": false,
-                } as Task)
+            _createTask()
             addTaskInput!.innerText = ''
             addTask = false
+        }
+    }
+
+    function _createTask() {
+        const isNotEmpty = addTaskInput!.innerText.length > 0
+        if (isNotEmpty) {
+            const task = {
+                "id": `${Date.now().toString()}`,
+                "status": "todo",
+                "title": addTaskInput?.innerText,
+                "editable": false,
+            } as Task
+            tasks.push(task)
+            observable.next(task)
         }
     }
 
