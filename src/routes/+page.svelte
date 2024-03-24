@@ -12,6 +12,9 @@
     const observable = new Subject<Task>();
 
     onMount(async () => {
+        // Start Analytics
+        let {analytics} = await import("$lib/client/firebase")
+
         // Set debounce observer
         const debounceTimeInMills = debounceTime<Task>(1000)
         const debouncedObservable = observable.pipe(debounceTimeInMills)
@@ -123,8 +126,9 @@
     // TODO: Validate the task did change to save on Firebase quota costs.
     async function _updateInTheBackend(task: Task) {
         if (browser) {
+            let {logEvent} = await import("@firebase/analytics")
             let {collection, doc, setDoc, deleteDoc, serverTimestamp} = await import("@firebase/firestore")
-            let {db} = await import("$lib/client/firebase")
+            let {db, analytics} = await import("$lib/client/firebase")
 
             const isCreate = task.id == undefined
             const isUpdate = task.id != undefined
@@ -135,12 +139,14 @@
             const taskRef = doc(tasksRef, taskId)
 
             if (isDelete) {
+                logEvent(analytics, 'deleted_task')
                 console.log(`delete: ${task.id}`)
                 return await deleteDoc(taskRef)
             }
 
             if (isCreate) {
                 task.id = taskRef.id
+                logEvent(analytics, 'created_task')
                 console.log(`create: ${task.id}`)
                 return await setDoc(taskRef, {
                     "id": taskRef.id,
@@ -152,6 +158,7 @@
 
             if (isUpdate) {
                 console.log(`update: ${task.id}`)
+                logEvent(analytics, 'updated_task')
                 return await setDoc(taskRef, {
                     "id": taskRef.id,
                     "status": task.status,
