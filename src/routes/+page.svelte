@@ -3,49 +3,25 @@
 </script:head>
 
 <script lang="ts">
+    import {browser} from "$app/environment";
     import {debounceTime, Subject, Subscription} from 'rxjs';
     import {onDestroy, onMount} from "svelte";
-
-    type Task = {
-        id: string,
-        status: string,
-        title: string,
-        editable: boolean,
-        instance: HTMLDivElement,
-    }
+    import type {Task} from "$lib/domain/entity/task";
 
     let subscription: Subscription
     const observable = new Subject<Task>();
 
-    onMount(() => {
-        const debounceTimeInMills = debounceTime<Task>(500)
+    onMount(async () => {
+        // Set debounce observer
+        const debounceTimeInMills = debounceTime<Task>(1000)
         const debouncedObservable = observable.pipe(debounceTimeInMills)
         subscription = debouncedObservable.subscribe(_updateInTheBackend);
     })
 
     onDestroy(() => subscription?.unsubscribe())
 
-    let tasks = $state([
-        {
-            "id": "1",
-            "status": "todo",
-            "title": "We are logging handled errors to Sentry and Crashlytics.\n\n@Daniel",
-            "editable": false,
-        },
-        {
-            "id": "2",
-            "status": "todo",
-            "title": "Provide viewmodel dependencies through constructor.\n\n@Jason",
-            "editable": false,
-        },
-        {
-            "id": "3",
-            "status": "doing",
-            "title": "Duplicate API calls on rebuilds of widgets.\n\n@Jhionan",
-            "editable": false,
-        }
-    ] as Task[]);
-
+    let {data} = $props();
+    let tasks = $state(data.tasks)
 
     let todo = $derived.by(() => {
         return tasks.filter((task) => task.status === "todo");
@@ -123,11 +99,10 @@
         }
     }
 
-    function _createTask() {
+    async function _createTask() {
         const isNotEmpty = addTaskInput!.innerText.length > 0
         if (isNotEmpty) {
             const task = {
-                "id": `${Date.now().toString()}`,
                 "status": "todo",
                 "title": addTaskInput?.innerText,
                 "editable": false,
@@ -145,9 +120,48 @@
         })
     }
 
-    function _updateInTheBackend(task: Task) {
-        // TODO: Save task on the backend.
-        console.log(`Task ${task.id} is being saved in the backend...`)
+    // TODO: Validate the task did change to save on Firebase quota costs.
+    async function _updateInTheBackend(task: Task) {
+        if (browser) {
+            let {collection, doc, setDoc, deleteDoc, serverTimestamp} = await import("@firebase/firestore")
+            let {db} = await import("$lib/client/firebase")
+
+            const isCreate = task.id == undefined
+            const isUpdate = task.id != undefined
+            const isDelete = task.title === ""
+
+            const tasksRef = collection(db, "boards/first-board/tasks")
+            const taskId = isCreate ? doc(tasksRef).id : task.id
+            const taskRef = doc(tasksRef, taskId)
+
+            if (isDelete) {
+                console.log(`delete: ${task.id}`)
+                return await deleteDoc(taskRef)
+            }
+
+            if (isCreate) {
+                task.id = taskRef.id
+                console.log(`create: ${task.id}`)
+                return await setDoc(taskRef, {
+                    "id": taskRef.id,
+                    "status": task.status,
+                    "title": task.title,
+                    "createdAt": serverTimestamp()
+                })
+            }
+
+            if (isUpdate) {
+                console.log(`update: ${task.id}`)
+                return await setDoc(taskRef, {
+                    "id": taskRef.id,
+                    "status": task.status,
+                    "title": task.title,
+                    "updatedAt": serverTimestamp()
+                }, {merge: true})
+            }
+
+
+        }
     }
 
     function _setCursorAtEnd() {

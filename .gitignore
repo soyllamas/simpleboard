@@ -125,3 +125,6 @@ yarn.lock
 .test-tmp
 symlink-from
 .idea/
+
+serviceAccount.json
+firebaseConfig.json
