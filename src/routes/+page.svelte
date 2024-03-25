@@ -183,9 +183,9 @@
 </script>
 
 <div class="max-w-[960px] mx-auto px-4">
-    <h1 class="text-slate-950 text-[32px] font-bold pt-[40px]">SimpleBoards</h1>
-    <h2 class="text-slate-600 pb-[80px]">Kanban for the rest of us.</h2>
-    <div class="grid grid-cols-3 gap-[12px]">
+    <h1 class="text-slate-950 text-[32px] font-bold pt-[32px] md:pt-[40px]">SimpleBoard</h1>
+    <h2 class="text-slate-600 pb-[64px] md:pb-[80px]">Kanban for minimalists.</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-[12px]">
         {#each columns as {id, name, tasks}}
             <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
                  ondrop={(event) => onDrop(event, id)}
