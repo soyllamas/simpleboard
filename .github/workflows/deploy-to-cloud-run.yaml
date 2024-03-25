@@ -1,0 +1,47 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 👤Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_SERVICE_ACCOUNT_KEY }}
+
+      - name: ☁️ Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: 🚢 Configure Docker
+        run: gcloud auth configure-docker
+
+      - name: ⚙️ Build Docker image
+        run: |
+          docker build \
+            --build-arg FIREBASE_SERVICE_ACCOUNT="${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" \
+            --build-arg PUBLIC_FIREBASE_CONFIG="${{ secrets.FIREBASE_CONFIG }}" \
+            -t gcr.io/simpleboards-app/simpleboards:${{ github.sha }} .
+
+      - name: ⬆️ Upload Docker image to Google Container Registry
+        run: docker push gcr.io/simpleboards-app/simpleboards:${{ github.sha }}
+
+      - name: 👟 Deploy to Cloud Run
+        run: |
+          gcloud run deploy simpleboards \
+            --image=gcr.io/simpleboards-app/simpleboards:${{ github.sha }} \
+            --platform=managed \
+            --region=us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars=FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }} \
+            --set-env-vars=PUBLIC_FIREBASE_CONFIG=${{ secrets.FIREBASE_CONFIG }}
+
+      - name: ✅ Success
+        run: |
+          echo "Deployed successfully!"

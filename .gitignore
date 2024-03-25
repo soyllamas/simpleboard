@@ -111,7 +111,6 @@ dist
 tmp
 
 test-results/
-package-lock.json
 yarn.lock
 /packages/create-svelte/template/CHANGELOG.md
 /packages/package/test/**/package
