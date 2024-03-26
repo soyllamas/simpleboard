@@ -1,19 +1,16 @@
-import type {PageServerLoad} from './$types';
-import type {Task} from "$lib/domain/entity/task";
-import {firestore} from "$lib/server/firebase-admin";
+import type {PageServerLoad} from "./$types";
 
 export const load: PageServerLoad = async () => {
-    const snapshot = await firestore.collection('boards/first-board/tasks').get();
-    const docs = snapshot.docs
-    const tasks = docs.map(function (doc) {
-        const data = doc.data();
-        return {
-            "id": data.id,
-            "status": data.status,
-            "title": data.title,
-        }
-    })
     return {
-        tasks: tasks as Task[],
+        boardId: generateRandomId(),
     };
 };
+
+function generateRandomId() {
+    const randomLetters = Array.from({length: 10}, () =>
+        String.fromCharCode(97 + Math.floor(Math.random() * 26)) // ASCII lowercase letters
+    ).join('');
+
+    // Insert dashes at specified positions
+    return `${randomLetters.slice(0, 3)}-${randomLetters.slice(3, 7)}-${randomLetters.slice(7)}`;
+}
