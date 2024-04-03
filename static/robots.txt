@@ -1,0 +1,35 @@
+# robots.txt template for most websites
+
+User-agent: *
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /junk/
+
+# Allow all agents to access the public directory
+User-agent: *
+Allow: /public/
+
+# Disallow specific crawlers from a section
+User-agent: BadBot # Replace 'BadBot' with the actual user-agent of the bot
+Disallow: /private-section/
+
+# Sitemap location
+Sitemap: https://simpleboard.app/sitemap.xml
+
+# Delay between successive requests to limit server load (Crawl-delay is not acknowledged by all search engines)
+Crawl-delay: 10
+
+# Block access to specific file types (for example, PDFs)
+User-agent: *
+Disallow: /*.pdf$
+
+# Allow Google Image bot to index all images
+User-agent: Googlebot-Image
+Allow: /
+
+# Prevent web archive services from archiving your content
+User-agent: ia_archiver
+Disallow: /
+
+# Comments can be added like this
+# Customize the directives based on your site's structure and needs
