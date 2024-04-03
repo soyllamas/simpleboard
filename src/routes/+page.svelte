@@ -2,10 +2,12 @@
     <title>SimpleBoard — Kanban for minimalists</title>
 </script:header>
 <script>
-    import {goto} from "$app/navigation";
+    import {sanitize} from "$lib/domain/useCase/sanitize";
 
     let {data} = $props();
     let boardId = $state(data.boardId);
+    let url = $derived(sanitize(boardId))
+    let domain = $state(data.domain);
 </script>
 
 <div class="max-w-[960px] mx-auto px-4 h-dvh">
@@ -13,16 +15,16 @@
     <h2 class="text-slate-600 pb-16 md:pb-16 text-center">Kanban for minimalists.</h2>
     <div class="flex justify-center mx-auto">
         <p class="text-[1rem] bg-slate-200 border-t border-l border-b rounded-l-lg px-3 py-1.5 text-slate-700 border-slate-300">
-            simpleboard.app/
+            {`${domain}/`}
         </p>
         <input type="text"
                placeholder="my-board"
                class="text-[1rem] bg-slate-100 px-3 py-1.5 outline-blue-600 border border-slate-300 text-slate-700 w-auto"
                bind:value={boardId}>
-        <button class="bg-blue-600 text-slate-50 rounded-r-lg px-4"
-                onclick={() => goto(boardId)}>
+        <a class="bg-blue-600 text-slate-50 rounded-r-lg px-4 py-1.5"
+           href={url}>
             Join
-        </button>
+        </a>
     </div>
 </div>
 

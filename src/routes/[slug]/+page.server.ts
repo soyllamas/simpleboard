@@ -1,6 +1,7 @@
 import type {Task} from "$lib/domain/entity/task";
 import {firestore} from "$lib/server/firebase-admin";
 import type {PageServerLoad} from "./$types";
+import {sanitize} from "$lib/domain/useCase/sanitize";
 
 export const load: PageServerLoad = async ({params}) => {
     const boardId = params.slug
