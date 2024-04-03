@@ -1,7 +1,8 @@
-<script:header>
+<script:head>
     <title>SimpleBoard — Kanban for minimalists</title>
     <meta name="description" content="A very simple kanban board for minimalists.">
-</script:header>
+</script:head>
+
 <script lang="ts">
     import {sanitize} from "$lib/domain/useCase/sanitize";
     import {goto} from "$app/navigation";
