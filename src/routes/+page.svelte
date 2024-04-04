@@ -20,10 +20,10 @@
     }
 </script>
 
-<div class="max-w-[960px] mx-auto px-4 h-dvh">
+<div class="max-w-md mx-auto px-4 h-dvh">
     <h1 class="text-slate-950 text-[32px] font-bold pt-8 md:pt-24 text-center">SimpleBoard</h1>
     <h2 class="text-slate-600 pb-16 md:pb-16 text-center">Kanban for minimalists.</h2>
-    <div class="flex max-w-md mx-auto">
+    <div class="flex mx-auto">
         <p class="text-[1rem] bg-slate-100 border-t border-l border-b rounded-l-lg px-3 py-1.5 text-slate-700 border-slate-300 shrink-0">
             {`${domain}/`}
         </p>
@@ -38,4 +38,16 @@
             Join
         </a>
     </div>
+    <h2 class="mt-24 text-xl">Use Cases</h2>
+    <ul class="list-disc mx-auto pl-8 mt-4">
+        <li>Mob-programming.</li>
+        <li>Personal project.</li>
+        <li>Mind-dump.</li>
+    </ul>
+    <h2 class="mt-12 text-xl">Features</h2>
+    <ul class="list-disc mx-auto pl-8 mt-4">
+        <li>It's free!</li>
+        <li>No account required.</li>
+        <li>As collaborative as sharing a link.</li>
+    </ul>
 </div>
