@@ -10,6 +10,13 @@
     let subscription: Subscription
     const observable = new Subject<Task>();
 
+    type Column = {
+        id: string,
+        name: string,
+        tasks: Task[],
+        instance: HTMLDivElement,
+    }
+
     onMount(async () => {
         // Start Analytics
         let {analytics} = await import("$lib/client/firebase")
@@ -26,17 +33,9 @@
     let tasks = $state(data.tasks)
     let boardId = $state(data.boardId)
 
-    let todo = $derived.by(() => {
-        return tasks.filter((task) => task.status === "todo");
-    });
-
-    let doing = $derived.by(() => {
-        return tasks.filter((task) => task.status === "doing");
-    });
-
-    let done = $derived.by(() => {
-        return tasks.filter((task) => task.status === "done");
-    });
+    let todo = $derived(tasks.filter((task) => task.status === "todo"));
+    let doing = $derived(tasks.filter((task) => task.status === "doing"));
+    let done = $derived(tasks.filter((task) => task.status === "done"));
 
     let addTask = $state(false);
     let addTaskInput = $state<HTMLDivElement>();
@@ -46,21 +45,22 @@
             "id": "todo",
             "name": "To-do",
             "tasks": todo,
-        },
+        } as Column,
         {
             "id": "doing",
             "name": "Doing",
             "tasks": doing,
-        },
+        } as Column,
         {
             "id": "done",
             "name": "Done",
             "tasks": done,
-        }
+        } as Column,
     ])
 
+
     function onDrag(event: DragEvent, id: string) {
-        event.dataTransfer?.setData('text/plain', id);
+        event.dataTransfer?.setData('text/plain', id)
     }
 
     function onDrop(event: DragEvent, status: string) {
@@ -80,6 +80,12 @@
 
     function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
         const isEnter = event.key === 'Enter' && !event.shiftKey
+        const isEscape = event.key === 'Escape'
+
+        if (isEscape) {
+            task.instance.blur()
+        }
+
         if (isEnter) {
             _updateTask(task)
             observable.next(task)
@@ -95,6 +101,13 @@
 
     function onKeyDownCreateTask(event: KeyboardEvent) {
         const isEnter = event.key === 'Enter' && !event.shiftKey
+        const isEscape = event.key === 'Escape'
+
+        if (isEscape) {
+            addTaskInput!.innerText = ''
+            addTask = false
+        }
+
         if (isEnter) {
             _createTask()
             addTaskInput!.innerText = ''
@@ -141,14 +154,12 @@
 
         if (isDelete) {
             logEvent(analytics, 'deleted_task')
-            console.log(`delete: ${task.id}`)
             return await deleteDoc(taskRef)
         }
 
         if (isCreate) {
             task.id = taskRef.id
             logEvent(analytics, 'created_task')
-            console.log(`create: ${task.id}`)
             return await setDoc(taskRef, {
                 "id": taskRef.id,
                 "status": task.status,
@@ -158,7 +169,6 @@
         }
 
         if (isUpdate) {
-            console.log(`update: ${task.id}`)
             logEvent(analytics, 'updated_task')
             return await setDoc(taskRef, {
                 "id": taskRef.id,
@@ -184,14 +194,15 @@
     <h1 class="text-slate-950 text-[32px] font-bold pt-8">SimpleBoard</h1>
     <h2 class="text-slate-600 pb-12">Kanban for minimalists.</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {#each columns as {id, name, tasks}}
+        {#each columns as column}
             <div class="md:flex md:flex-col bg-slate-50 rounded-lg box-content col-height border-[1px] border-slate-200"
-                 ondrop={(event) => onDrop(event, id)}
+                 ondrop={(event) => onDrop(event, column.id)}
                  ondragover={e => e.preventDefault()}
                  role="none">
-                <p class="font-semibold px-3 py-2 rounded-t-lg border-b-[1px] border-b-slate-200">{name}</p>
-                <div class="md:overflow-y-auto px-[12px] pb-[12px]">
-                    {#each tasks as task}
+                <p class="font-semibold px-3 py-2 rounded-t-lg border-b-[1px] border-b-slate-200">{column.name}</p>
+                <div class="md:overflow-y-auto px-[12px] pb-[12px]"
+                     bind:this={column.instance}>
+                    {#each column.tasks as task}
                         <div draggable="true"
                              ondragstart={(event) => onDrag(event, task.id)}
                              class="rounded-[8px] border-[1px] border-slate-300 mt-[12px] skew-x-0 cursor-pointer"
@@ -211,7 +222,7 @@
                             </div>
                         </div>
                     {/each}
-                    {#if id === "todo"}
+                    {#if column.id === "todo"}
                         <div class="rounded-[8px] border-[1px] border-slate-300 mt-[12px] skew-x-0 cursor-pointer selected"
                              class:hidden={!addTask}
                              role="none">
@@ -228,7 +239,7 @@
                         </div>
                     {/if}
                 </div>
-                {#if id === "todo"}
+                {#if column.id === "todo"}
                     <div class="h-0 w-full border-t-[1px] border-t-slate-200"></div>
                     <div class="flex justify-start px-2 py-1.5 rounded-[8px] border-[1px] border-transparent group hover:border-slate-300 hover:bg-white cursor-pointer m-[6px]"
                          onclick={() => onCreateTaskPressed()}
