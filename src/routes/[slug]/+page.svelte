@@ -181,61 +181,66 @@
 </script>
 
 <div class="max-w-[960px] mx-auto px-4">
-    <h1 class="text-slate-950 text-[32px] font-bold pt-[32px] md:pt-[40px]">SimpleBoard</h1>
-    <h2 class="text-slate-600 pb-[64px] md:pb-[80px]">Kanban for minimalists.</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-[12px]">
+    <h1 class="text-slate-950 text-[32px] font-bold pt-8">SimpleBoard</h1>
+    <h2 class="text-slate-600 pb-12">Kanban for minimalists.</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         {#each columns as {id, name, tasks}}
-            <div class="bg-slate-50 rounded-[8px] px-[12px] box-content border-transparent border-2"
+            <div class="md:flex md:flex-col bg-slate-50 rounded-lg box-content col-height border-[1px] border-slate-200"
                  ondrop={(event) => onDrop(event, id)}
                  ondragover={e => e.preventDefault()}
                  role="none">
-                <p class="font-semibold py-[12px]">{name}</p>
-                {#each tasks as task}
-                    <div draggable="true"
-                         ondragstart={(event) => onDrag(event, task.id)}
-                         class="rounded-[8px] border-[1px] border-slate-300 mb-[12px] skew-x-0 cursor-pointer"
-                         class:selected={task.editable}
-                         role="none">
-                        <div class="bg-white rounded-[7px] p-[16px] border-transparent border-[1px]"
-                             class:selected={task.editable}>
-                            <div contenteditable="true"
-                                 class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
-                                 onfocusin={() => task.editable = true}
-                                 onfocusout={() => task.editable = false}
-                                 onkeydown={(event) => onKeyDownUpdateTask(event, task)}
-                                 bind:this={task.instance}
-                                 bind:innerText={task.title}
-                                 role="none">
+                <p class="font-semibold px-3 py-2 rounded-t-lg border-b-[1px] border-b-slate-200">{name}</p>
+                <div class="md:overflow-y-auto px-[12px] pb-[12px]">
+                    {#each tasks as task}
+                        <div draggable="true"
+                             ondragstart={(event) => onDrag(event, task.id)}
+                             class="rounded-[8px] border-[1px] border-slate-300 mt-[12px] skew-x-0 cursor-pointer"
+                             class:selected={task.editable}
+                             role="none">
+                            <div class="bg-white rounded-[7px] p-[16px] border-transparent border-[1px]"
+                                 class:selected={task.editable}>
+                                <div contenteditable="true"
+                                     class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
+                                     onfocusin={() => task.editable = true}
+                                     onfocusout={() => task.editable = false}
+                                     onkeydown={(event) => onKeyDownUpdateTask(event, task)}
+                                     bind:this={task.instance}
+                                     bind:innerText={task.title}
+                                     role="none">
+                                </div>
                             </div>
                         </div>
-                    </div>
-                {/each}
+                    {/each}
+                    {#if id === "todo"}
+                        <div class="rounded-[8px] border-[1px] border-slate-300 mt-[12px] skew-x-0 cursor-pointer selected"
+                             class:hidden={!addTask}
+                             role="none">
+                            <div class="bg-white rounded-[7px] p-[16px] border-transparent border-[1px] selected">
+                                <div contenteditable="true"
+                                     class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
+                                     onfocusin={() => addTask = true}
+                                     onfocusout={() => addTask = false}
+                                     onkeydown={(event) => onKeyDownCreateTask(event)}
+                                     bind:this={addTaskInput}
+                                     role="none">
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
                 {#if id === "todo"}
-                    <div class="rounded-[8px] border-[1px] border-slate-300 mb-[12px] skew-x-0 cursor-pointer selected"
-                         class:hidden={!addTask}
-                         role="none">
-                        <div class="bg-white rounded-[7px] p-[16px] border-transparent border-[1px] selected">
-                            <div contenteditable="true"
-                                 class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
-                                 onfocusin={() => addTask = true}
-                                 onfocusout={() => addTask = false}
-                                 onkeydown={(event) => onKeyDownCreateTask(event)}
-                                 bind:this={addTaskInput}
-                                 role="none">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex justify-start px-3 py-2 rounded-[8px] border-[1px] border-transparent group hover:border-slate-300 hover:bg-white cursor-pointer mb-[12px]"
+                    <div class="h-0 w-full border-t-[1px] border-t-slate-200"></div>
+                    <div class="flex justify-start px-2 py-1.5 rounded-[8px] border-[1px] border-transparent group hover:border-slate-300 hover:bg-white cursor-pointer m-[6px]"
                          onclick={() => onCreateTaskPressed()}
                          role="none">
                         <svg xmlns="http://www.w3.org/2000/svg"
                              height="24"
                              viewBox="0 -960 960 960"
                              width="24"
-                             class="fill-slate-400 group-hover:fill-slate-700">
+                             class="fill-slate-400 group-hover:fill-slate-600">
                             <path d="M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z"/>
                         </svg>
-                        <p class="pl-1 text-slate-400 group-hover:text-slate-700">Create task</p>
+                        <p class="pl-1 text-slate-400 group-hover:text-slate-600">Create task</p>
                     </div>
                 {/if}
             </div>
@@ -246,5 +251,9 @@
 <style>
     .selected {
         @apply box-border border-[1px] border-blue-600;
+    }
+
+    .col-height {
+        height: calc(100vh - 180px);
     }
 </style>
