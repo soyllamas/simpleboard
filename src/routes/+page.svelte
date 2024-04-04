@@ -38,13 +38,13 @@
             Join
         </a>
     </div>
-    <h2 class="mt-24 text-xl">Use Cases</h2>
+    <h2 class="mt-24 text-xl font-semibold">Use Cases</h2>
     <ul class="list-disc mx-auto pl-8 mt-4">
         <li>Mob-programming.</li>
         <li>Personal project.</li>
         <li>Mind-dump.</li>
     </ul>
-    <h2 class="mt-12 text-xl">Features</h2>
+    <h2 class="mt-12 text-xl font-semibold">Features</h2>
     <ul class="list-disc mx-auto pl-8 mt-4">
         <li>It's free!</li>
         <li>No account required.</li>
