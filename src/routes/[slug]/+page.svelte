@@ -195,19 +195,20 @@
     <h1 class="text-slate-950 text-2xl font-bold py-8">#{boardId}</h1>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {#each columns as column}
-            <div class="md:flex md:flex-col rounded-lg box-content min-h-[80vh]"
+            <div class="md:flex md:flex-col md:min-h-[80vh]"
                  ondrop={(event) => onDrop(event, column.id)}
                  ondragover={e => e.preventDefault()}
                  role="none">
                 <div class="flex">
                     <p class="text-slate-950 font-semibold rounded-t-lg flex-grow">{column.name}</p>
                     {#if column.id === "todo"}
-                        <div class="flex-wrap hover:bg-slate-100" onclick={() => onCreateTaskPressed()} role="none">
+                        <div class="flex-wrap hover:cursor-pointer"
+                             onclick={() => onCreateTaskPressed()} role="none">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  height="24"
                                  viewBox="0 -960 960 960"
                                  width="24"
-                                 class="text-slate-950">
+                                 class="fill-amber-950 rounded-md hover:bg-slate-50">
                                 <path d="M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z"/>
                             </svg>
                         </div>
@@ -216,10 +217,10 @@
                 <div class="mb-3"
                      bind:this={column.instance}>
                     {#if column.id === "todo"}
-                        <div class="rounded-lg border-[1px] border-slate-300 mt-3 skew-x-0 cursor-pointer selected"
+                        <div class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-pointer selected"
                              class:hidden={!addTask}
                              role="none">
-                            <div class="bg-white rounded-[7px] p-4 border-transparent border-[1px] selected">
+                            <div class="bg-white rounded-[7px] p-4 border-transparent border selected">
                                 <div contenteditable="true"
                                      class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
                                      onfocusin={() => addTask = true}
@@ -234,10 +235,10 @@
                     {#each column.tasks as task}
                         <div draggable="true"
                              ondragstart={(event) => onDrag(event, task.id)}
-                             class="rounded-lg border-[1px] border-slate-300 mt-3 skew-x-0 cursor-pointer"
+                             class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-pointer"
                              class:selected={task.editable}
                              role="none">
-                            <div class="bg-white rounded-[7px] p-4 border-transparent border-[1px]"
+                            <div class="bg-white rounded-[7px] p-4 border-transparent border"
                                  class:selected={task.editable}>
                                 <div contenteditable="true"
                                      class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
@@ -259,6 +260,6 @@
 
 <style>
     .selected {
-        @apply box-border border-[1px] border-blue-600;
+        @apply box-border border border-blue-600;
     }
 </style>
