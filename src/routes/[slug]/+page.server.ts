@@ -5,7 +5,10 @@ import {sanitize} from "$lib/domain/useCase/sanitize";
 
 export const load: PageServerLoad = async ({params}) => {
     const boardId = params.slug
-    const snapshot = await firestore.collection(`boards/${boardId}/tasks`).get();
+    const snapshot = await firestore
+        .collection(`boards/${boardId}/tasks`)
+        .orderBy('updatedAt', 'desc')
+        .get();
     const docs = snapshot.docs
     const tasks = docs.map(function (doc) {
         const data = doc.data();
