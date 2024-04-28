@@ -61,7 +61,6 @@
 
     function onDrag(event: DragEvent, task: Task) {
         event.dataTransfer?.setData('text/plain', task.id)
-        task.editable = true
     }
 
     function onDrop(event: DragEvent, status: string) {
@@ -234,8 +233,9 @@
                             </div>
                         </div>
                     {/if}
+                    <!--                TODO: Let's see if we can unify this into one single div...-->
                     {#each column.tasks as task}
-                        <div draggable="true"
+                        <div draggable={!task.editable}
                              ondragstart={(event) => onDrag(event, task)}
                              ondragend={() => task.editable = false}
                              onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
