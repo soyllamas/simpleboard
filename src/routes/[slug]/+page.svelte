@@ -224,7 +224,7 @@
                              role="none">
                             <div class="bg-white rounded-[7px] p-4 border-transparent border selected">
                                 <div contenteditable="true"
-                                     class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
+                                     class="text-slate-700 whitespace-pre-line min-h-4 outline-none"
                                      onfocusin={() => addTask = true}
                                      onfocusout={() => addTask = false}
                                      onkeydown={(event) => onKeyDownCreateTask(event)}
@@ -237,20 +237,25 @@
                     {#each column.tasks as task}
                         <div draggable="true"
                              ondragstart={(event) => onDrag(event, task)}
+                             ondragend={() => task.editable = false}
+                             onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
                              class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-pointer"
                              class:selected={task.editable}
                              role="none">
                             <div class="bg-white rounded-[7px] p-4 border-transparent border"
                                  class:selected={task.editable}>
-                                <div contenteditable="true"
-                                     class="text-slate-600 whitespace-pre-line min-h-4 outline-none"
-                                     onfocusin={() => task.editable = true}
-                                     onfocusout={() => task.editable = false}
-                                     onkeydown={(event) => onKeyDownUpdateTask(event, task)}
-                                     bind:this={task.instance}
-                                     bind:innerText={task.title}
-                                     role="none">
-                                </div>
+                                {#if task.editable}
+                                    <div contenteditable="true"
+                                         class="text-slate-700 whitespace-pre-line min-h-4 outline-none"
+                                         onfocusout={() => task.editable = false}
+                                         onkeydown={(event) => onKeyDownUpdateTask(event, task)}
+                                         bind:this={task.instance}
+                                         bind:innerText={task.title}
+                                         role="none">
+                                    </div>
+                                {:else}
+                                    <p class="text-slate-600 whitespace-pre-line min-h-4 outline-none">{task.title}</p>
+                                {/if}
                             </div>
                         </div>
                     {/each}
