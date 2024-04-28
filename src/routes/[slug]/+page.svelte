@@ -59,8 +59,9 @@
     ])
 
 
-    function onDrag(event: DragEvent, id: string) {
-        event.dataTransfer?.setData('text/plain', id)
+    function onDrag(event: DragEvent, task: Task) {
+        event.dataTransfer?.setData('text/plain', task.id)
+        task.editable = true
     }
 
     function onDrop(event: DragEvent, status: string) {
@@ -74,6 +75,7 @@
         tasks = tasks.filter((task) => task.id !== taskId)
 
         task!.status = status
+        task!.editable = false
         tasks.unshift(task!)
         observable.next(task!)
     }
@@ -234,7 +236,7 @@
                     {/if}
                     {#each column.tasks as task}
                         <div draggable="true"
-                             ondragstart={(event) => onDrag(event, task.id)}
+                             ondragstart={(event) => onDrag(event, task)}
                              class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-pointer"
                              class:selected={task.editable}
                              role="none">
