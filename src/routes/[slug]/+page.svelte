@@ -311,7 +311,7 @@
     }
 
     .sidebar-height {
-        height: calc(100vh - 32px);
+        height: calc(100dvh - 32px);
     }
 
     :global(article > *) {
