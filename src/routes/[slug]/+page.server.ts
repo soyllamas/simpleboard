@@ -2,6 +2,7 @@ import type {Task} from "$lib/domain/entity/task";
 import {firestore} from "$lib/server/firebase-admin";
 import type {PageServerLoad} from "./$types";
 import {sanitize} from "$lib/domain/useCase/sanitize";
+import Markdoc from "@markdoc/markdoc";
 
 export const load: PageServerLoad = async ({params}) => {
     const boardId = params.slug
@@ -23,3 +24,9 @@ export const load: PageServerLoad = async ({params}) => {
         tasks: tasks as Task[],
     };
 };
+
+function toHtml(source: string) {
+    const ast = Markdoc.parse(source);
+    const content = Markdoc.transform(ast);
+    return Markdoc.renderers.html(content);
+}

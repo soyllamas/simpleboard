@@ -6,6 +6,7 @@
     import {debounceTime, Subject, Subscription} from 'rxjs';
     import {onDestroy, onMount} from "svelte";
     import type {Task} from "$lib/domain/entity/task";
+    import Markdoc from "@markdoc/markdoc";
 
     let subscription: Subscription
     const observable = new Subject<Task>();
@@ -211,6 +212,12 @@
         selection!.addRange(range);
     }
 
+    function toHtml(source: string) {
+        const ast = Markdoc.parse(source);
+        const content = Markdoc.transform(ast);
+        return Markdoc.renderers.html(content);
+    }
+
 </script>
 
 <div class="group">
@@ -222,6 +229,7 @@
     <div class="z-50 sidebar-height absolute rounded-lg top-0 w-56 bg-white border border-slate-300 m-4 translate-x-[-248px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 duration-300 scale-90 group-hover:scale-100 py-6 px-[14px]">
         <h3 class="font-bold text-xl mx-[10px]">SimpleBoard</h3>
         <p class="text-[11px] text-slate-500 font-normal mb-6 mx-[10px]">Kanban for minimalists</p>
+        <p class="text-slate-500 mb-2 px-[10px] text-[12px] font-medium">Recent</p>
         {#each menuItems as menuItem}
             <a class="text-sm py-[6px] px-[10px] rounded-lg block w-full hover:underline mb-1"
                class:bg-slate-100={menuItem === boardId}
@@ -282,13 +290,13 @@
                                  role="none">
                             </div>
                         {:else}
-                            <p class="rounded-lg box-border border border-slate-300 mt-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-4 p-4 bg-white"
-                               draggable="true"
-                               onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
-                               ondragstart={(event) => onDrag(event, task)}
-                               role="none">
-                                {task.title}
-                            </p>
+                            <div class="rounded-lg box-border border border-slate-300 mt-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-4 px-4 pt-4 bg-white"
+                                 draggable="true"
+                                 onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
+                                 ondragstart={(event) => onDrag(event, task)}
+                                 role="none">
+                                {@html toHtml(task.title)}
+                            </div>
                         {/if}
                     {/each}
                 </div>
@@ -304,5 +312,13 @@
 
     .sidebar-height {
         height: calc(100vh - 32px);
+    }
+
+    :global(article > *) {
+        @apply mb-4;
+    }
+
+    :global(code) {
+        @apply bg-slate-100 px-1 py-0.5 rounded text-sm;
     }
 </style>
