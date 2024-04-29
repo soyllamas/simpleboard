@@ -74,7 +74,6 @@
         tasks = tasks.filter((task) => task.id !== taskId)
 
         task!.status = status
-        task!.editable = false
         tasks.unshift(task!)
         observable.next(task!)
     }
@@ -218,47 +217,35 @@
                 <div class="mb-3"
                      bind:this={column.instance}>
                     {#if column.id === "todo"}
-                        <div class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-default selected"
+                        <div contenteditable="true"
+                             class="rounded-lg mt-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4"
                              class:hidden={!addTask}
+                             onfocusin={() => addTask = true}
+                             onfocusout={() => addTask = false}
+                             onkeydown={(event) => onKeyDownCreateTask(event)}
+                             bind:this={addTaskInput}
                              role="none">
-                            <div class="bg-white rounded-[7px] p-4 border-transparent border selected">
-                                <div contenteditable="true"
-                                     class="text-slate-700 whitespace-pre-line min-h-4 outline-none"
-                                     onfocusin={() => addTask = true}
-                                     onfocusout={() => addTask = false}
-                                     onkeydown={(event) => onKeyDownCreateTask(event)}
-                                     bind:this={addTaskInput}
-                                     role="none">
-                                </div>
-                            </div>
                         </div>
                     {/if}
-                    <!-- TODO: Let's see if we can unify this into one single div... -->
                     {#each column.tasks as task}
-                        <div draggable={!task.editable}
-                             ondragstart={(event) => onDrag(event, task)}
-                             ondragend={() => task.editable = false}
-                             onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
-                             class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-default"
-                             class:selected={task.editable}
-                             role="none">
-                            <div class="bg-white rounded-[7px] p-4 border-transparent border"
-                                 class:selected={task.editable}>
-                                {#if task.editable}
-                                    <div contenteditable="true"
-                                         class="text-slate-700 whitespace-pre-line min-h-4 outline-none"
-                                         onfocusout={() => task.editable = false}
-                                         onkeydown={(event) => onKeyDownUpdateTask(event, task)}
-                                         class:cursor-text={task.editable}
-                                         bind:this={task.instance}
-                                         bind:innerText={task.title}
-                                         role="none">
-                                    </div>
-                                {:else}
-                                    <p class="text-slate-600 whitespace-pre-line min-h-4 outline-none">{task.title}</p>
-                                {/if}
+                        {#if task.editable}
+                            <div contenteditable="true"
+                                 onkeydown={(event) => onKeyDownUpdateTask(event, task)}
+                                 onblur={() => task.editable = false}
+                                 class="selected box-border cursor-text rounded-lg text-slate-700 mt-3 skew-x-0 whitespace-pre-line p-4 min-h-4"
+                                 bind:this={task.instance}
+                                 bind:innerText={task.title}
+                                 role="none">
                             </div>
-                        </div>
+                        {:else}
+                            <p class="rounded-lg box-border border border-slate-300 mt-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-4 p-4 bg-white"
+                               draggable="true"
+                               onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
+                               ondragstart={(event) => onDrag(event, task)}
+                               role="none">
+                                {task.title}
+                            </p>
+                        {/if}
                     {/each}
                 </div>
             </div>
@@ -268,6 +255,6 @@
 
 <style>
     .selected {
-        @apply box-border border border-blue-600;
+        @apply border-blue-600 border-2 p-[15px];
     }
 </style>
