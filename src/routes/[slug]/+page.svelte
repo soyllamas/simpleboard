@@ -218,7 +218,7 @@
                 <div class="mb-3"
                      bind:this={column.instance}>
                     {#if column.id === "todo"}
-                        <div class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-pointer selected"
+                        <div class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-default selected"
                              class:hidden={!addTask}
                              role="none">
                             <div class="bg-white rounded-[7px] p-4 border-transparent border selected">
@@ -233,13 +233,13 @@
                             </div>
                         </div>
                     {/if}
-                    <!--                TODO: Let's see if we can unify this into one single div...-->
+                    <!-- TODO: Let's see if we can unify this into one single div... -->
                     {#each column.tasks as task}
                         <div draggable={!task.editable}
                              ondragstart={(event) => onDrag(event, task)}
                              ondragend={() => task.editable = false}
                              onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
-                             class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-pointer"
+                             class="rounded-lg border border-slate-300 mt-3 skew-x-0 cursor-default"
                              class:selected={task.editable}
                              role="none">
                             <div class="bg-white rounded-[7px] p-4 border-transparent border"
@@ -249,6 +249,7 @@
                                          class="text-slate-700 whitespace-pre-line min-h-4 outline-none"
                                          onfocusout={() => task.editable = false}
                                          onkeydown={(event) => onKeyDownUpdateTask(event, task)}
+                                         class:cursor-text={task.editable}
                                          bind:this={task.instance}
                                          bind:innerText={task.title}
                                          role="none">
