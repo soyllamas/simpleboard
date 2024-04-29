@@ -270,7 +270,7 @@
                      bind:this={column.instance}>
                     {#if column.id === "todo"}
                         <div contenteditable="true"
-                             class="rounded-lg mt-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4"
+                             class="rounded-lg mt-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
                              class:hidden={!addTask}
                              onfocusin={() => addTask = true}
                              onfocusout={() => addTask = false}
@@ -284,7 +284,7 @@
                             <div contenteditable="true"
                                  onkeydown={(event) => onKeyDownUpdateTask(event, task)}
                                  onblur={() => task.editable = false}
-                                 class="selected box-border cursor-text rounded-lg text-slate-700 mt-3 skew-x-0 whitespace-pre-line p-4 min-h-4"
+                                 class="selected box-border cursor-text rounded-lg text-slate-700 mt-3 skew-x-0 whitespace-pre-line p-4 min-h-4 outline-none"
                                  bind:this={task.instance}
                                  bind:innerText={task.title}
                                  role="none">
