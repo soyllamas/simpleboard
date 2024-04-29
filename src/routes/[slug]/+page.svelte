@@ -17,6 +17,8 @@
         instance: HTMLDivElement,
     }
 
+    let menuItems = $state<string[]>([])
+
     onMount(async () => {
         // Start Analytics
         let {analytics} = await import("$lib/client/firebase")
@@ -25,13 +27,33 @@
         const debounceTimeInMills = debounceTime<Task>(1000)
         const debouncedObservable = observable.pipe(debounceTimeInMills)
         subscription = debouncedObservable.subscribe(_updateInTheBackend);
+
+        // Retrieve recent boards
+        let data = localStorage.getItem('recent');
+        if (data) {
+            const recentBoards = JSON.parse(data) ?? [];
+            const isNewBoard = !recentBoards.includes(boardId)
+            if (isNewBoard) {
+                recentBoards.unshift(boardId);
+            }
+            menuItems = recentBoards
+        } else {
+            menuItems = [boardId]
+        }
+        data = JSON.stringify($state.snapshot(menuItems))
+        localStorage.setItem('recent', data)
     })
 
     onDestroy(() => subscription?.unsubscribe())
 
-    let {data} = $props();
+    let {data} = $props()
     let tasks = $state(data.tasks)
     let boardId = $state(data.boardId)
+
+    $effect(() => {
+        boardId = data.boardId
+        tasks = data.tasks
+    });
 
     let todo = $derived(tasks.filter((task) => task.status === "todo"));
     let doing = $derived(tasks.filter((task) => task.status === "doing"));
@@ -191,8 +213,30 @@
 
 </script>
 
+<div class="fixed group z-50">
+    <button class="absolute bg-white top-6 left-6 rounded-lg border border-slate-300 w-8 h-8 grid items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20">
+            <path d="M180-264q-15.3 0-25.65-10.29Q144-284.58 144-299.79t10.35-25.71Q164.7-336 180-336h600q15.3 0 25.65 10.29Q816-315.42 816-300.21t-10.35 25.71Q795.3-264 780-264H180Zm0-180q-15.3 0-25.65-10.29Q144-464.58 144-479.79t10.35-25.71Q164.7-516 180-516h600q15.3 0 25.65 10.29Q816-495.42 816-480.21t-10.35 25.71Q795.3-444 780-444H180Zm0-180q-15.3 0-25.65-10.29Q144-644.58 144-659.79t10.35-25.71Q164.7-696 180-696h600q15.3 0 25.65 10.29Q816-675.42 816-660.21t-10.35 25.71Q795.3-624 780-624H180Z"/>
+        </svg>
+    </button>
+    <div class="sidebar-height absolute rounded-lg top-0 w-56 bg-white border border-slate-300 m-4 translate-x-[-248px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 duration-300 scale-90 group-hover:scale-100 py-6 px-[14px]">
+        <h3 class="font-bold text-xl mx-[10px]">SimpleBoard</h3>
+        <p class="text-[11px] text-slate-500 font-normal mb-6 mx-[10px]">Kanban for minimalists</p>
+        {#each menuItems as menuItem}
+            <a class="text-sm py-[6px] px-[10px] rounded-lg block w-full hover:underline mb-1"
+               class:bg-slate-100={menuItem === boardId}
+               href="{menuItem}">
+                #{menuItem}
+            </a>
+        {/each}
+    </div>
+</div>
 <div class="max-w-[960px] mx-auto px-4">
-    <h1 class="text-slate-950 text-2xl font-bold py-8">#{boardId}</h1>
+    <h1 class="inline-block text-slate-950 text-2xl font-bold my-8 hover:underline cursor-pointer"
+        onclick={() => console.log("Copy to clipboard + show toast")}
+        role="none">
+        #{boardId}
+    </h1>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {#each columns as column}
             <div class="md:flex md:flex-col md:min-h-[80vh]"
@@ -256,5 +300,9 @@
 <style>
     .selected {
         @apply border-blue-600 border-2 p-[15px];
+    }
+
+    .sidebar-height {
+        height: calc(100vh - 32px);
     }
 </style>
