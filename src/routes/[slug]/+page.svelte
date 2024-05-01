@@ -356,14 +356,18 @@
     }
 
     :global(article > *) {
-        @apply mb-4;
+        @apply mb-4 break-words;
     }
 
-    :global(code) {
+    :global(article code) {
         @apply bg-slate-100 px-1 py-0.5 rounded text-sm;
     }
 
-    :global(ul) {
+    :global(article ul) {
         @apply pl-4 list-disc;
+    }
+
+    :global(article a) {
+        @apply text-blue-600 underline;
     }
 </style>
