@@ -27,8 +27,9 @@
         // Start Analytics
         let {analytics} = await import("$lib/client/firebase")
 
+        // TODO: Is this code bug-prone now that we support updates in real-time?
         // Set debounce observer
-        const debounceTimeInMills = debounceTime<Task>(1000)
+        const debounceTimeInMills = debounceTime<Task>(250)
         const debouncedObservable = observable.pipe(debounceTimeInMills)
         subscription = debouncedObservable.subscribe(_updateInTheBackend);
 
