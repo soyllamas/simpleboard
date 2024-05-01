@@ -6,9 +6,12 @@
     import {debounceTime, Subject, Subscription} from 'rxjs';
     import {onDestroy, onMount} from "svelte";
     import type {Task} from "$lib/domain/entity/task";
+    import type {Unsubscribe} from "@firebase/firestore";
     import Markdoc from "@markdoc/markdoc";
+    import {browser} from "$app/environment";
 
     let subscription: Subscription
+    let unsubscribe: Unsubscribe
     const observable = new Subject<Task>();
 
     type Column = {
@@ -45,7 +48,10 @@
         localStorage.setItem('recent', data)
     })
 
-    onDestroy(() => subscription?.unsubscribe())
+    onDestroy(() => {
+        subscription?.unsubscribe();
+        unsubscribe?.();
+    })
 
     let {data} = $props()
     let tasks = $state(data.tasks)
@@ -54,7 +60,9 @@
     $effect(() => {
         boardId = data.boardId
         tasks = data.tasks
+        listenToChanges(data.boardId);
     });
+
 
     let todo = $derived(tasks.filter((task) => task.status === "todo"));
     let doing = $derived(tasks.filter((task) => task.status === "doing"));
@@ -81,6 +89,38 @@
         } as Column,
     ])
 
+    async function listenToChanges(boardId: string) {
+        if (!browser) return
+
+        let {db} = await import("$lib/client/firebase")
+        let {collection, onSnapshot} = await import("firebase/firestore");
+
+        unsubscribe?.();
+        unsubscribe = onSnapshot(collection(db, "boards", boardId, "tasks"), (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const data = change.doc.data();
+                const taskId = data.id;
+
+                if (change.type === 'removed') {
+                    tasks = tasks.filter((t) => t.id !== taskId)
+                    return
+                }
+
+                const task = tasks.find((task) => task.id === taskId);
+
+                if (task) {
+                    task.title = data.title;
+                    task.status = data.status;
+                } else {
+                    tasks.unshift({
+                        "id": data.id,
+                        "status": data.status,
+                        "title": data.title,
+                    } as Task)
+                }
+            });
+        });
+    }
 
     function onDrag(event: DragEvent, task: Task) {
         event.dataTransfer?.setData('text/plain', task.id)
