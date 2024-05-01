@@ -27,6 +27,9 @@
         // Start Analytics
         let {analytics} = await import("$lib/client/firebase")
 
+        // Request focus if tasks are empty
+        addTaskInput?.focus();
+
         // TODO: Is this code bug-prone now that we support updates in real-time?
         // Set debounce observer
         const debounceTimeInMills = debounceTime<Task>(250)
@@ -294,7 +297,7 @@
                  role="none">
                 <div class="flex">
                     <p class="text-slate-950 font-semibold rounded-t-lg flex-grow">{column.name}</p>
-                    {#if column.id === "todo"}
+                    {#if column.id === "todo" && tasks.length > 0}
                         <div class="flex-wrap hover:cursor-pointer"
                              onclick={() => onCreateTaskPressed()} role="none">
                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -312,7 +315,7 @@
                     {#if column.id === "todo"}
                         <div contenteditable="plaintext-only"
                              class="rounded-lg mt-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
-                             class:hidden={!addTask}
+                             class:hidden={!addTask && tasks.length !== 0}
                              onfocusin={() => addTask = true}
                              onfocusout={() => addTask = false}
                              onkeydown={(event) => onKeyDownCreateTask(event)}
