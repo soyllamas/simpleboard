@@ -269,7 +269,7 @@
                 <div class="mb-3"
                      bind:this={column.instance}>
                     {#if column.id === "todo"}
-                        <div contenteditable="true"
+                        <div contenteditable="plaintext-only"
                              class="rounded-lg mt-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
                              class:hidden={!addTask}
                              onfocusin={() => addTask = true}
@@ -281,7 +281,7 @@
                     {/if}
                     {#each column.tasks as task}
                         {#if task.editable}
-                            <div contenteditable="true"
+                            <div contenteditable="plaintext-only"
                                  onkeydown={(event) => onKeyDownUpdateTask(event, task)}
                                  onblur={() => task.editable = false}
                                  class="selected box-border cursor-text rounded-lg text-slate-700 mt-3 skew-x-0 whitespace-pre-line p-4 min-h-4 outline-none"
@@ -320,5 +320,9 @@
 
     :global(code) {
         @apply bg-slate-100 px-1 py-0.5 rounded text-sm;
+    }
+
+    :global(ul) {
+        @apply pl-4 list-disc;
     }
 </style>

@@ -48,6 +48,7 @@
     <ul class="list-disc mx-auto pl-8 mt-4">
         <li>It's free!</li>
         <li>No account required.</li>
-        <li>As collaborative as sharing a link.</li>
+        <li>Share your board with the link.</li>
+        <li>Markdown support.</li>
     </ul>
 </div>
