@@ -4,7 +4,7 @@ import type {PageServerLoad} from "./$types";
 import {sanitize} from "$lib/domain/useCase/sanitize";
 import Markdoc from "@markdoc/markdoc";
 
-export const load: PageServerLoad = async ({params}) => {
+export const load: PageServerLoad = async ({params, url}) => {
     const boardId = params.slug
     const snapshot = await firestore
         .collection(`boards/${boardId}/tasks`)
@@ -22,11 +22,6 @@ export const load: PageServerLoad = async ({params}) => {
     return {
         boardId: boardId,
         tasks: tasks as Task[],
+        link: url.host + "/" + boardId
     };
 };
-
-function toHtml(source: string) {
-    const ast = Markdoc.parse(source);
-    const content = Markdoc.transform(ast);
-    return Markdoc.renderers.html(content);
-}

@@ -13,6 +13,7 @@
 
     let subscription: Subscription
     let unsubscribe: Unsubscribe
+
     const observable = new Subject<Task>();
 
     type Column = {
@@ -67,7 +68,6 @@
         tasks = data.tasks
         listenToChanges(data.boardId);
     });
-
 
     let todo = $derived(tasks.filter((task) => task.status === "todo"));
     let doing = $derived(tasks.filter((task) => task.status === "doing"));
@@ -273,6 +273,10 @@
         localStorage.setItem('recent', data)
     }
 
+    function copyToClipboard() {
+        navigator.clipboard.writeText(data.link);
+    }
+
 </script>
 
 <div class="group">
@@ -311,7 +315,7 @@
 </div>
 <div class="max-w-[960px] mx-auto px-4">
     <h1 class="inline-block text-slate-950 text-2xl font-bold my-8 hover:underline cursor-pointer"
-        onclick={() => console.log("Copy to clipboard + show toast")}
+        onclick={() => copyToClipboard()}
         role="none">
         #{boardId}
     </h1>
