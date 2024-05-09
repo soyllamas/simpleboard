@@ -9,6 +9,7 @@
     import type {Unsubscribe} from "@firebase/firestore";
     import Markdoc from "@markdoc/markdoc";
     import {browser} from "$app/environment";
+    import {goto} from "$app/navigation";
 
     let subscription: Subscription
     let unsubscribe: Unsubscribe
@@ -262,6 +263,16 @@
         return Markdoc.renderers.html(content);
     }
 
+    function removeRecentBoard(id: string) {
+        let data = localStorage.getItem('recent') ?? '';
+        let boardIds = (JSON.parse(data) ?? []) as string[];
+        boardIds = boardIds.filter((boardId) => boardId != id);
+        menuItems = boardIds
+        if (id === boardId && menuItems.length > 0) goto(menuItems[0])
+        data = JSON.stringify(boardIds)
+        localStorage.setItem('recent', data)
+    }
+
 </script>
 
 <div class="group">
@@ -275,11 +286,22 @@
         <p class="text-[11px] text-slate-500 font-normal mb-6 mx-[10px]">Kanban for minimalists</p>
         <p class="text-slate-500 mb-2 px-[10px] text-[12px] font-medium">Recent</p>
         {#each menuItems as menuItem}
-            <a class="text-sm py-[6px] px-[10px] rounded-lg block w-full hover:underline mb-1"
-               class:bg-slate-100={menuItem === boardId}
-               href="{menuItem}">
-                #{menuItem}
-            </a>
+            <div class="flex items-center rounded-lg px-[10px] py-[6px] mb-1 group/item"
+                 class:bg-slate-100={menuItem === boardId}>
+                <a class="text-sm block w-full group-hover/item:underline align-middle"
+                   href="{menuItem}">
+                    #{menuItem}
+                </a>
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="hidden group-hover/item:block fill-slate-400 cursor-pointer"
+                     height="20px"
+                     viewBox="0 -960 960 960"
+                     width="20px"
+                     onclick={() => removeRecentBoard(menuItem)}
+                     role="none">
+                    <path d="M480-429 316-265q-11 11-25 10.5T266-266q-11-11-11-25.5t11-25.5l163-163-164-164q-11-11-10.5-25.5T266-695q11-11 25.5-11t25.5 11l163 164 164-164q11-11 25.5-11t25.5 11q11 11 11 25.5T695-644L531-480l164 164q11 11 11 25t-11 25q-11 11-25.5 11T644-266L480-429Z"/>
+                </svg>
+            </div>
         {/each}
     </div>
 </div>
