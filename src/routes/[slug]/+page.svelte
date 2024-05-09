@@ -281,9 +281,13 @@
             <path d="M180-264q-15.3 0-25.65-10.29Q144-284.58 144-299.79t10.35-25.71Q164.7-336 180-336h600q15.3 0 25.65 10.29Q816-315.42 816-300.21t-10.35 25.71Q795.3-264 780-264H180Zm0-180q-15.3 0-25.65-10.29Q144-464.58 144-479.79t10.35-25.71Q164.7-516 180-516h600q15.3 0 25.65 10.29Q816-495.42 816-480.21t-10.35 25.71Q795.3-444 780-444H180Zm0-180q-15.3 0-25.65-10.29Q144-644.58 144-659.79t10.35-25.71Q164.7-696 180-696h600q15.3 0 25.65 10.29Q816-675.42 816-660.21t-10.35 25.71Q795.3-624 780-624H180Z"/>
         </svg>
     </button>
-    <div class="z-50 sidebar-height absolute rounded-lg top-0 w-56 bg-white border border-slate-300 m-4 translate-x-[-248px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 duration-300 scale-90 group-hover:scale-100 py-6 px-[14px]">
-        <h3 class="font-bold text-xl mx-[10px]">SimpleBoard</h3>
-        <p class="text-[11px] text-slate-500 font-normal mb-6 mx-[10px]">Kanban for minimalists</p>
+    <div class="z-50 sidebar-height absolute rounded-lg top-0 w-56 bg-white border border-slate-300 m-4 translate-x-[-248px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 duration-300 scale-90 group-hover:scale-100 py-4 px-[14px]">
+        <div class="rounded-lg hover:bg-slate-100 cursor-pointer">
+            <a href="/">
+                <h3 class="font-bold text-xl mx-[10px] pt-2">SimpleBoard</h3>
+                <p class="text-[11px] text-slate-500 font-normal mb-6 mx-[10px] pb-2">Kanban for minimalists</p>
+            </a>
+        </div>
         <p class="text-slate-500 mb-2 px-[10px] text-[12px] font-medium">Recent</p>
         {#each menuItems as menuItem}
             <div class="flex items-center rounded-lg px-[10px] py-[6px] mb-1 group/item"
