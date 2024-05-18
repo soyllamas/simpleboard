@@ -277,6 +277,18 @@
         navigator.clipboard.writeText(data.link);
     }
 
+    function onTaskClicked(event: MouseEvent, task: Task) {
+        const isATag = event.target?.tagName.toLowerCase() === 'a';
+        if (isATag) {
+            event.target.setAttribute('target', '_blank');
+            event.stopPropagation()
+        } else {
+            task.editable = true
+            setTimeout(() => task.instance.focus())
+        }
+    }
+
+
 </script>
 
 <div class="group">
@@ -366,7 +378,7 @@
                         {:else}
                             <div class="rounded-lg box-border border border-slate-300 mt-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-4 px-4 pt-4 bg-white"
                                  draggable="true"
-                                 onclick={() => {task.editable = true; setTimeout(() => task.instance.focus())}}
+                                 onclick={(event) => onTaskClicked(event, task)}
                                  ondragstart={(event) => onDrag(event, task)}
                                  role="none">
                                 {@html toHtml(task.title)}
