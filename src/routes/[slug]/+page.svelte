@@ -131,35 +131,39 @@
         event.dataTransfer?.setData('text/plain', task.id)
     }
 
-    function onDragover(event: DragEvent, tasks: Task[]) {
-        event.preventDefault()
-    }
-
     function onDrop(event: DragEvent, status: string) {
         event.preventDefault()
 
         const taskId = event.dataTransfer?.getData("text/plain")
         const task = tasks.find((task) => task.id === taskId)
 
-        let closestTask = null;
-        let closestOffset = Number.NEGATIVE_INFINITY
+        let underTask = null
+        let topZone = Number.MAX_VALUE
+        let bottomZone = 0
 
         for (let t of tasks) {
-            const {top} = t.instance.getBoundingClientRect()
-            const offset = top - event.clientY
+            const {top, height} = t.instance.getBoundingClientRect()
+            const topBound = top
+            const bottomBound = top + height
 
-            if (offset < 0 && offset > closestOffset) {
-                closestOffset = offset
-                closestTask = t;
+            if (topBound < event.clientY && bottomBound > event.clientY) {
+                underTask = t
             }
+
+            if (topBound < topZone) topZone = top
+            if (bottomBound > bottomZone) bottomZone = bottomBound
         }
 
-        const closestIndex = tasks.indexOf(closestTask!)
+        if (underTask == undefined) {
+            if (topZone > event.clientY) underTask = tasks[0]
+            if (bottomZone < event.clientY) underTask = tasks[tasks.length - 1]
+        }
 
-        tasks = tasks.filter((task) => task.id !== taskId)
+        const underIndex = tasks.indexOf(underTask!)
+        const _tasks = tasks.filter((task) => task.id !== taskId)
 
         task!.status = status
-        tasks = tasks.slice(0, closestIndex).concat(task!, tasks.slice(closestIndex));
+        tasks = _tasks.slice(0, underIndex).concat(task!, _tasks.slice(underIndex));
         // TODO: Sync UI position with some type of sorting.
         observable.next(task!)
     }
@@ -353,7 +357,7 @@
         {#each columns as column}
             <div class="md:flex md:flex-col md:min-h-[80vh]"
                  ondrop={(event) => onDrop(event, column.id)}
-                 ondragover={event => onDragover(event, column.tasks)}
+                 ondragover={e => e.preventDefault()}
                  role="none">
                 <div class="flex">
                     <p class="text-slate-950 font-semibold rounded-t-lg flex-grow">{column.name}</p>
@@ -429,6 +433,10 @@
 
     :global(article ul) {
         @apply pl-4 list-disc;
+    }
+
+    :global(article ol) {
+        @apply pl-4 list-decimal;
     }
 
     :global(article a) {
