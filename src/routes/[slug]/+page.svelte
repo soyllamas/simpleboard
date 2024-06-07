@@ -131,18 +131,36 @@
         event.dataTransfer?.setData('text/plain', task.id)
     }
 
+    function onDragover(event: DragEvent, tasks: Task[]) {
+        event.preventDefault()
+    }
+
     function onDrop(event: DragEvent, status: string) {
         event.preventDefault()
 
         const taskId = event.dataTransfer?.getData("text/plain")
         const task = tasks.find((task) => task.id === taskId)
 
-        if (task!.status == status) return
+        let closestTask = null;
+        let closestOffset = Number.NEGATIVE_INFINITY
+
+        for (let t of tasks) {
+            const {top} = t.instance.getBoundingClientRect()
+            const offset = top - event.clientY
+
+            if (offset < 0 && offset > closestOffset) {
+                closestOffset = offset
+                closestTask = t;
+            }
+        }
+
+        const closestIndex = tasks.indexOf(closestTask!)
 
         tasks = tasks.filter((task) => task.id !== taskId)
 
         task!.status = status
-        tasks.unshift(task!)
+        tasks = tasks.slice(0, closestIndex).concat(task!, tasks.slice(closestIndex));
+        // TODO: Sync UI position with some type of sorting.
         observable.next(task!)
     }
 
@@ -335,7 +353,7 @@
         {#each columns as column}
             <div class="md:flex md:flex-col md:min-h-[80vh]"
                  ondrop={(event) => onDrop(event, column.id)}
-                 ondragover={e => e.preventDefault()}
+                 ondragover={event => onDragover(event, column.tasks)}
                  role="none">
                 <div class="flex">
                     <p class="text-slate-950 font-semibold rounded-t-lg flex-grow">{column.name}</p>
@@ -380,6 +398,7 @@
                                  draggable="true"
                                  onclick={(event) => onTaskClicked(event, task)}
                                  ondragstart={(event) => onDrag(event, task)}
+                                 bind:this={task.instance}
                                  role="none">
                                 {@html toHtml(task.title)}
                             </div>
