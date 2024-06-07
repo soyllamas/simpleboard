@@ -32,9 +32,8 @@
         // Request focus if tasks are empty
         addTaskInput?.focus();
 
-        // TODO: Is this code bug-prone now that we support updates in real-time?
         // Set debounce observer
-        const debounceTimeInMills = debounceTime<Task>(250)
+        const debounceTimeInMills = debounceTime<Task>(3000)
         const debouncedObservable = observable.pipe(debounceTimeInMills)
         subscription = debouncedObservable.subscribe(_updateInTheBackend);
 
@@ -120,7 +119,7 @@
         let topZone = Number.MAX_VALUE
         let bottomZone = 0
 
-        for (let t of tasks) {
+        for (let t of tasks.filter(task => task.status == status)) {
             const {top, height} = t.instance.getBoundingClientRect()
             const topBound = top - 6
             const bottomBound = top + height + 6
@@ -204,10 +203,9 @@
         })
     }
 
-    // TODO: Validate the task did change to save on Firebase quota costs.
     async function _updateInTheBackend(task: Task) {
         let {logEvent} = await import("@firebase/analytics")
-        let {collection, doc, setDoc, serverTimestamp} = await import("@firebase/firestore")
+        let {collection, doc, setDoc} = await import("@firebase/firestore")
         let {db, analytics} = await import("$lib/client/firebase")
 
         const boardId = window.location.pathname.slice(1);
@@ -216,11 +214,8 @@
         const isUpdate = task.id != undefined
         const isDelete = task.title === ""
 
-        const tasksRef = collection(db, `boards/${boardId}/tasks`)
-        const taskId = isCreate ? doc(tasksRef).id : task.id
-        const taskRef = doc(tasksRef, taskId)
-
-        const boardRef = doc(db, `boards/${boardId}`)
+        const boardsRef = collection(db, `boards`)
+        const boardRef = doc(boardsRef, boardId)
 
         if (isDelete) {
             logEvent(analytics, 'deleted_task')
@@ -232,12 +227,11 @@
                         "title": task.title,
                     }
                 }),
-                "updatedAt": serverTimestamp()
             }, {merge: true})
         }
 
         if (isCreate) {
-            task.id = taskRef.id
+            task.id = doc(boardsRef).id
             logEvent(analytics, 'created_task')
             return await setDoc(boardRef, {
                 "tasks": $state.snapshot(tasks).map(task => {
@@ -247,8 +241,6 @@
                         "title": task.title,
                     }
                 }),
-                "createdAt": serverTimestamp(),
-                "updatedAt": serverTimestamp()
             })
         }
 
@@ -262,8 +254,6 @@
                         "title": task.title,
                     }
                 }),
-                "createdAt": serverTimestamp(),
-                "updatedAt": serverTimestamp()
             }, {merge: true})
         }
     }
@@ -298,8 +288,10 @@
     }
 
     function onTaskClicked(event: MouseEvent, task: Task) {
+        // @ts-ignore
         const isATag = event.target?.tagName.toLowerCase() === 'a';
         if (isATag) {
+            // @ts-ignore
             event.target.setAttribute('target', '_blank');
             event.stopPropagation()
         } else {

@@ -7,7 +7,13 @@ import Markdoc from "@markdoc/markdoc";
 export const load: PageServerLoad = async ({params, url}) => {
     const boardId = params.slug
     const snapshot = await firestore.doc(`boards/${boardId}`).get();
-    const tasks = snapshot.get("tasks")
+    const tasks = (snapshot.get("tasks") ?? []).map((data: any) => {
+        return {
+            "id": data.id,
+            "title": data.title,
+            "status": data.status,
+        }
+    })
     return {
         boardId: boardId,
         tasks: tasks as Task[],
