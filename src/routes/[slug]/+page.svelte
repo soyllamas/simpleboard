@@ -98,32 +98,11 @@
         if (!browser) return
 
         let {db} = await import("$lib/client/firebase")
-        let {collection, onSnapshot} = await import("firebase/firestore");
+        let {doc, onSnapshot} = await import("firebase/firestore");
 
         unsubscribe?.();
-        unsubscribe = onSnapshot(collection(db, "boards", boardId, "tasks"), (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                const data = change.doc.data();
-                const taskId = data.id;
-
-                if (change.type === 'removed') {
-                    tasks = tasks.filter((t) => t.id !== taskId)
-                    return
-                }
-
-                const task = tasks.find((task) => task.id === taskId);
-
-                if (task) {
-                    task.title = data.title;
-                    task.status = data.status;
-                } else {
-                    tasks.unshift({
-                        "id": data.id,
-                        "status": data.status,
-                        "title": data.title,
-                    } as Task)
-                }
-            });
+        unsubscribe = onSnapshot(doc(db, "boards", boardId), (snapshot) => {
+            tasks = snapshot.get("tasks")
         });
     }
 
@@ -143,8 +122,8 @@
 
         for (let t of tasks) {
             const {top, height} = t.instance.getBoundingClientRect()
-            const topBound = top
-            const bottomBound = top + height
+            const topBound = top - 6
+            const bottomBound = top + height + 6
 
             if (topBound < event.clientY && bottomBound > event.clientY) {
                 underTask = t
@@ -164,7 +143,6 @@
 
         task!.status = status
         tasks = _tasks.slice(0, underIndex).concat(task!, _tasks.slice(underIndex));
-        // TODO: Sync UI position with some type of sorting.
         observable.next(task!)
     }
 
@@ -229,7 +207,7 @@
     // TODO: Validate the task did change to save on Firebase quota costs.
     async function _updateInTheBackend(task: Task) {
         let {logEvent} = await import("@firebase/analytics")
-        let {collection, doc, setDoc, deleteDoc, serverTimestamp} = await import("@firebase/firestore")
+        let {collection, doc, setDoc, serverTimestamp} = await import("@firebase/firestore")
         let {db, analytics} = await import("$lib/client/firebase")
 
         const boardId = window.location.pathname.slice(1);
@@ -242,18 +220,33 @@
         const taskId = isCreate ? doc(tasksRef).id : task.id
         const taskRef = doc(tasksRef, taskId)
 
+        const boardRef = doc(db, `boards/${boardId}`)
+
         if (isDelete) {
             logEvent(analytics, 'deleted_task')
-            return await deleteDoc(taskRef)
+            await setDoc(boardRef, {
+                "tasks": $state.snapshot(tasks).map(task => {
+                    return {
+                        "id": task.id,
+                        "status": task.status,
+                        "title": task.title,
+                    }
+                }),
+                "updatedAt": serverTimestamp()
+            }, {merge: true})
         }
 
         if (isCreate) {
             task.id = taskRef.id
             logEvent(analytics, 'created_task')
-            return await setDoc(taskRef, {
-                "id": taskRef.id,
-                "status": task.status,
-                "title": task.title,
+            return await setDoc(boardRef, {
+                "tasks": $state.snapshot(tasks).map(task => {
+                    return {
+                        "id": task.id,
+                        "status": task.status,
+                        "title": task.title,
+                    }
+                }),
                 "createdAt": serverTimestamp(),
                 "updatedAt": serverTimestamp()
             })
@@ -261,10 +254,15 @@
 
         if (isUpdate) {
             logEvent(analytics, 'updated_task')
-            return await setDoc(taskRef, {
-                "id": taskRef.id,
-                "status": task.status,
-                "title": task.title,
+            return await setDoc(boardRef, {
+                "tasks": $state.snapshot(tasks).map(task => {
+                    return {
+                        "id": task.id,
+                        "status": task.status,
+                        "title": task.title,
+                    }
+                }),
+                "createdAt": serverTimestamp(),
                 "updatedAt": serverTimestamp()
             }, {merge: true})
         }
@@ -309,7 +307,6 @@
             setTimeout(() => task.instance.focus())
         }
     }
-
 
 </script>
 
@@ -374,11 +371,10 @@
                         </div>
                     {/if}
                 </div>
-                <div class="mb-3"
-                     bind:this={column.instance}>
+                <div bind:this={column.instance}>
                     {#if column.id === "todo"}
                         <div contenteditable="plaintext-only"
-                             class="rounded-lg mt-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
+                             class="rounded-lg my-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
                              class:hidden={!addTask && tasks.length !== 0}
                              onfocusin={() => addTask = true}
                              onfocusout={() => addTask = false}
@@ -392,13 +388,13 @@
                             <div contenteditable="plaintext-only"
                                  onkeydown={(event) => onKeyDownUpdateTask(event, task)}
                                  onblur={() => task.editable = false}
-                                 class="selected box-border cursor-text rounded-lg text-slate-700 mt-3 skew-x-0 whitespace-pre-line p-4 min-h-4 outline-none"
+                                 class="selected box-border cursor-text rounded-lg text-slate-700 my-3 skew-x-0 whitespace-pre-line p-4 min-h-4 outline-none"
                                  bind:this={task.instance}
                                  bind:innerText={task.title}
                                  role="none">
                             </div>
                         {:else}
-                            <div class="rounded-lg box-border border border-slate-300 mt-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-4 px-4 pt-4 bg-white"
+                            <div class="rounded-lg box-border border border-slate-300 my-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-4 px-4 pt-4 bg-white"
                                  draggable="true"
                                  onclick={(event) => onTaskClicked(event, task)}
                                  ondragstart={(event) => onDrag(event, task)}
