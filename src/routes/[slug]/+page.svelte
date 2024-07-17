@@ -59,12 +59,12 @@
     })
 
     let {data} = $props()
-    let tasks = $state(data.tasks)
+    let tasks = $state(data.tasks ?? [])
     let boardId = $state(data.boardId)
 
     $effect(() => {
         boardId = data.boardId
-        tasks = data.tasks
+        tasks = data.tasks ?? []
         listenToChanges(data.boardId);
     });
 
@@ -101,7 +101,7 @@
 
         unsubscribe?.();
         unsubscribe = onSnapshot(doc(db, "boards", boardId), (snapshot) => {
-            tasks = snapshot.get("tasks")
+            tasks = snapshot.get("tasks") ?? []
         });
     }
 
