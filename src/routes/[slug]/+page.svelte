@@ -101,6 +101,7 @@
 
         unsubscribe?.();
         unsubscribe = onSnapshot(doc(db, "boards", boardId), (snapshot) => {
+            // TODO: Only update what changed...
             tasks = snapshot.get("tasks") ?? []
         });
     }

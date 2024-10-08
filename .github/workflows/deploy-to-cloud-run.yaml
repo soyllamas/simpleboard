@@ -27,17 +27,17 @@ jobs:
           docker build \
             --build-arg FIREBASE_SERVICE_ACCOUNT="${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" \
             --build-arg PUBLIC_FIREBASE_CONFIG="${{ secrets.FIREBASE_CONFIG }}" \
-            -t gcr.io/simpleboards-app/simpleboards:${{ github.sha }} .
+            -t gcr.io/simpleboards-app/simpleboard:${{ github.sha }} .
 
-      - name: ⬆️ Upload Docker image to Google Container Registry
-        run: docker push gcr.io/simpleboards-app/simpleboards:${{ github.sha }}
+      - name: ⬆️ Upload Docker image to Google Artifact Registry
+        run: docker push gcr.io/simpleboards-app/simpleboard:${{ github.sha }}
 
       - name: 👟 Deploy to Cloud Run
         run: |
-          gcloud run deploy simpleboards \
-            --image=gcr.io/simpleboards-app/simpleboards:${{ github.sha }} \
+          gcloud run deploy simpleboard \
+            --image=gcr.io/simpleboards-app/simpleboard:${{ github.sha }} \
             --platform=managed \
-            --region=us-central1 \
+            --region=us-south1 \
             --allow-unauthenticated \
             --set-env-vars=FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }} \
             --set-env-vars=PUBLIC_FIREBASE_CONFIG=${{ secrets.FIREBASE_CONFIG }}
