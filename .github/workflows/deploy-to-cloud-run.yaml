@@ -37,7 +37,7 @@ jobs:
           gcloud run deploy simpleboard \
             --image=gcr.io/simpleboards-app/simpleboard:${{ github.sha }} \
             --platform=managed \
-            --region=us-south1 \
+            --region=us-central1 \
             --allow-unauthenticated \
             --set-env-vars=FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }} \
             --set-env-vars=PUBLIC_FIREBASE_CONFIG=${{ secrets.FIREBASE_CONFIG }}
