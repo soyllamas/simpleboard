@@ -9,6 +9,7 @@
     import Markdoc from "@markdoc/markdoc";
     import {browser} from "$app/environment";
     import {goto} from "$app/navigation";
+    import equal from "fast-deep-equal";
 
 
     let unsubscribe: Unsubscribe
@@ -92,8 +93,14 @@
 
         unsubscribe?.();
         unsubscribe = onSnapshot(doc(db, "boards", boardId), (snapshot) => {
-            // TODO: Only update what changed...
-            tasks = snapshot.get("tasks") ?? []
+            const remoteTasks = snapshot.get("tasks") ?? []
+            const localTasks = $state.snapshot(tasks).map(({id, status, title}) => {
+                return {id, status, title}
+            })
+
+            if (!equal(localTasks, remoteTasks)) {
+                tasks = remoteTasks
+            }
         });
     }
 
