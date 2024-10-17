@@ -3,7 +3,6 @@
 </script:head>
 
 <script lang="ts">
-    import {debounceTime, Subject, Subscription} from 'rxjs';
     import {onDestroy, onMount} from "svelte";
     import type {Task} from "$lib/domain/entity/task";
     import type {Unsubscribe} from "@firebase/firestore";
@@ -11,10 +10,8 @@
     import {browser} from "$app/environment";
     import {goto} from "$app/navigation";
 
-    let subscription: Subscription
-    let unsubscribe: Unsubscribe
 
-    const observable = new Subject<Task>();
+    let unsubscribe: Unsubscribe
 
     type Column = {
         id: string,
@@ -31,11 +28,6 @@
 
         // Request focus if tasks are empty
         addTaskInput?.focus();
-
-        // Set debounce observer
-        const debounceTimeInMills = debounceTime<Task>(3000)
-        const debouncedObservable = observable.pipe(debounceTimeInMills)
-        subscription = debouncedObservable.subscribe(_updateInTheBackend);
 
         // Retrieve recent boards
         let data = localStorage.getItem('recent');
@@ -54,7 +46,6 @@
     })
 
     onDestroy(() => {
-        subscription?.unsubscribe();
         unsubscribe?.();
     })
 
@@ -143,7 +134,7 @@
 
         task!.status = status
         tasks = _tasks.slice(0, underIndex).concat(task!, _tasks.slice(underIndex));
-        observable.next(task!)
+        _updateInTheBackend(task!)
     }
 
     function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
@@ -156,7 +147,7 @@
 
         if (isEnter) {
             _updateTask(task)
-            observable.next(task)
+            _updateInTheBackend(task)
         }
     }
 
@@ -192,7 +183,7 @@
                 "editable": false,
             } as Task
             tasks.unshift(task)
-            observable.next(task)
+            await _updateInTheBackend(task)
         }
     }
 
@@ -364,7 +355,7 @@
                         </div>
                     {/if}
                 </div>
-                <div bind:this={column.instance}>
+                <div>
                     {#if column.id === "todo"}
                         <div contenteditable="plaintext-only"
                              class="rounded-lg my-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
