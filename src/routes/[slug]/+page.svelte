@@ -288,7 +288,12 @@
             event.stopPropagation()
         } else {
             task.editable = true
-            setTimeout(() => task.instance.focus())
+            setTimeout(() => {
+                task.instance.focus()
+                let selection = window.getSelection();
+                selection?.selectAllChildren(task.instance);
+                selection?.collapseToEnd();
+            })
         }
     }
 
