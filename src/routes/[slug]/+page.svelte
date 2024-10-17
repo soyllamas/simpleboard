@@ -184,13 +184,16 @@
     async function _createTask() {
         const isNotEmpty = addTaskInput!.innerText.length > 0
         if (isNotEmpty) {
+            const title = addTaskInput?.innerText;
+            const taskId = await _generateId();
             const task = {
+                "id": taskId,
                 "status": "todo",
-                "title": addTaskInput?.innerText,
+                "title": title,
                 "editable": false,
             } as Task
             tasks.unshift(task)
-            await _updateInTheBackend(task)
+            await _updateInTheBackend(task, true)
         }
     }
 
@@ -202,59 +205,45 @@
         })
     }
 
-    async function _updateInTheBackend(task: Task) {
+    async function _generateId() {
+        let {collection, doc} = await import("@firebase/firestore")
+        let {db} = await import("$lib/client/firebase")
+
+        const boardsRef = collection(db, `boards`)
+
+        return doc(boardsRef).id;
+    }
+
+    async function _updateInTheBackend(task: Task, isCreate: boolean = false) {
         let {logEvent} = await import("@firebase/analytics")
         let {collection, doc, setDoc} = await import("@firebase/firestore")
         let {db, analytics} = await import("$lib/client/firebase")
 
         const boardId = window.location.pathname.slice(1);
 
-        const isCreate = task.id == undefined
-        const isUpdate = task.id != undefined
         const isDelete = task.title === ""
+        const isUpdate = !isCreate && !isDelete
 
         const boardsRef = collection(db, `boards`)
         const boardRef = doc(boardsRef, boardId)
 
-        if (isDelete) {
-            logEvent(analytics, 'deleted_task')
-            await setDoc(boardRef, {
-                "tasks": $state.snapshot(tasks).map(task => {
-                    return {
-                        "id": task.id,
-                        "status": task.status,
-                        "title": task.title,
-                    }
-                }),
-            }, {merge: true})
-        }
-
         if (isCreate) {
-            task.id = doc(boardsRef).id
             logEvent(analytics, 'created_task')
-            return await setDoc(boardRef, {
-                "tasks": $state.snapshot(tasks).map(task => {
-                    return {
-                        "id": task.id,
-                        "status": task.status,
-                        "title": task.title,
-                    }
-                }),
-            })
         }
 
         if (isUpdate) {
             logEvent(analytics, 'updated_task')
-            return await setDoc(boardRef, {
-                "tasks": $state.snapshot(tasks).map(task => {
-                    return {
-                        "id": task.id,
-                        "status": task.status,
-                        "title": task.title,
-                    }
-                }),
-            }, {merge: true})
         }
+
+        if (isDelete) {
+            logEvent(analytics, 'deleted_task')
+        }
+
+        await setDoc(boardRef, {
+            "tasks": $state.snapshot(tasks).map(({id, status, title}) => {
+                return {id, status, title};
+            }),
+        }, {merge: true})
     }
 
     function _setCursorAtEnd() {
