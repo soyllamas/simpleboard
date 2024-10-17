@@ -335,7 +335,7 @@
         #{boardId}
     </h1>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {#each columns as column}
+        {#each columns as column (column.id)}
             <div class="md:flex md:flex-col md:min-h-[80vh]"
                  ondrop={(event) => onDrop(event, column.id)}
                  ondragover={e => e.preventDefault()}
@@ -367,7 +367,7 @@
                              role="none">
                         </div>
                     {/if}
-                    {#each column.tasks as task}
+                    {#each column.tasks as task (task.id)}
                         {#if task.editable}
                             <div contenteditable="plaintext-only"
                                  onkeydown={(event) => onKeyDownUpdateTask(event, task)}
