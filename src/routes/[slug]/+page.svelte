@@ -11,7 +11,6 @@
     import {goto} from "$app/navigation";
     import equal from "fast-deep-equal";
 
-
     let unsubscribe: Unsubscribe
 
     type Column = {
@@ -26,6 +25,8 @@
     onMount(async () => {
         // Start Analytics
         let {analytics} = await import("$lib/client/firebase")
+
+        nextTaskId = await _generateId();
 
         // Request focus if tasks are empty
         addTaskInput?.focus();
@@ -53,6 +54,8 @@
     let {data} = $props()
     let tasks = $state(data.tasks ?? [])
     let boardId = $state(data.boardId)
+
+    let nextTaskId = ''
 
     $effect(() => {
         boardId = data.boardId
@@ -163,6 +166,9 @@
         if (_isEmpty(task.title)) {
             tasks = tasks.filter((item) => item.id !== task.id)
         }
+        tasks = tasks.map((task) => {
+            return {...task, title: task.title.trim()}
+        })
     }
 
     function onKeyDownCreateTask(event: KeyboardEvent) {
@@ -186,19 +192,19 @@
         }
     }
 
-    async function _createTask(title: string) {
+    function _createTask(title: string) {
         if (_isEmpty(title)) return
 
-        const taskId = await _generateId();
+        const taskId = _getId();
         const task = {
             "id": taskId,
             "status": "todo",
-            "title": title,
+            "title": title.trim(),
             "editable": false,
         } as Task
 
         tasks.unshift(task)
-        await _updateInTheBackend(task, true)
+        _updateInTheBackend(task, true)
     }
 
     function onCreateTaskPressed() {
@@ -209,7 +215,6 @@
         })
     }
 
-    // TODO: Pre-generate a taskId to avoid flickering
     async function _generateId() {
         let {collection, doc} = await import("@firebase/firestore")
         let {db} = await import("$lib/client/firebase")
@@ -217,6 +222,11 @@
         const boardsRef = collection(db, `boards`)
 
         return doc(boardsRef).id;
+    }
+
+    function _getId() {
+        _generateId().then(id => nextTaskId = id)
+        return nextTaskId;
     }
 
     async function _updateInTheBackend(task: Task, isCreate: boolean = false) {
@@ -233,17 +243,14 @@
         const boardRef = doc(boardsRef, boardId)
 
         if (isCreate) {
-            console.log("Task created");
             logEvent(analytics, "created_task")
         }
 
         if (isUpdate) {
-            console.log("Task updated");
             logEvent(analytics, "updated_task")
         }
 
         if (isDelete) {
-            console.log("Task deleted");
             logEvent(analytics, "deleted_task")
         }
 
