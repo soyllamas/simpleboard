@@ -31,7 +31,7 @@
         addTaskInput?.focus();
 
         // Retrieve recent boards
-        let data = localStorage.getItem('recent');
+        let data = localStorage.getItem("recent");
         if (data) {
             const recentBoards = JSON.parse(data) ?? [];
             const isNewBoard = !recentBoards.includes(boardId)
@@ -43,7 +43,7 @@
             menuItems = [boardId]
         }
         data = JSON.stringify($state.snapshot(menuItems))
-        localStorage.setItem('recent', data)
+        localStorage.setItem("recent", data)
     })
 
     onDestroy(() => {
@@ -105,7 +105,7 @@
     }
 
     function onDrag(event: DragEvent, task: Task) {
-        event.dataTransfer?.setData('text/plain', task.id)
+        event.dataTransfer?.setData("text/plain", task.id)
     }
 
     function onDrop(event: DragEvent, status: string) {
@@ -145,8 +145,8 @@
     }
 
     function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
-        const isEnter = event.key === 'Enter' && !event.shiftKey
-        const isEscape = event.key === 'Escape'
+        const isEnter = event.key === "Enter" && !event.shiftKey
+        const isEscape = event.key === "Escape"
 
         if (isEscape) {
             task.instance.blur()
@@ -160,41 +160,45 @@
 
     function _updateTask(task: Task) {
         task.instance.blur()
-        if (task.title === '') {
-            tasks = tasks.filter((t) => t.id !== task.id)
+        if (_isEmpty(task.title)) {
+            tasks = tasks.filter((item) => item.id !== task.id)
         }
     }
 
     function onKeyDownCreateTask(event: KeyboardEvent) {
-        const isEnter = event.key === 'Enter' && !event.shiftKey
-        const isEscape = event.key === 'Escape'
+        const isEnter = event.key === "Enter" && !event.shiftKey
+        const isEscape = event.key === "Escape"
+        const title = addTaskInput!.innerText
 
         if (isEscape) {
-            addTaskInput!.innerText = ''
+            addTaskInput!.innerText = ""
             addTask = false
         }
 
+        if ((isEnter && _isEmpty(title)) || isEnter && tasks.length === 0) {
+            event.preventDefault()
+        }
+
         if (isEnter) {
-            _createTask()
-            addTaskInput!.innerText = ''
+            _createTask(title)
+            addTaskInput!.innerText = ""
             addTask = false
         }
     }
 
-    async function _createTask() {
-        const isNotEmpty = addTaskInput!.innerText.length > 0
-        if (isNotEmpty) {
-            const title = addTaskInput?.innerText;
-            const taskId = await _generateId();
-            const task = {
-                "id": taskId,
-                "status": "todo",
-                "title": title,
-                "editable": false,
-            } as Task
-            tasks.unshift(task)
-            await _updateInTheBackend(task, true)
-        }
+    async function _createTask(title: string) {
+        if (_isEmpty(title)) return
+
+        const taskId = await _generateId();
+        const task = {
+            "id": taskId,
+            "status": "todo",
+            "title": title,
+            "editable": false,
+        } as Task
+
+        tasks.unshift(task)
+        await _updateInTheBackend(task, true)
     }
 
     function onCreateTaskPressed() {
@@ -205,6 +209,7 @@
         })
     }
 
+    // TODO: Pre-generate a taskId to avoid flickering
     async function _generateId() {
         let {collection, doc} = await import("@firebase/firestore")
         let {db} = await import("$lib/client/firebase")
@@ -221,27 +226,30 @@
 
         const boardId = window.location.pathname.slice(1);
 
-        const isDelete = task.title === ""
+        const isDelete = tasks.find((item) => item.id == task.id) === undefined
         const isUpdate = !isCreate && !isDelete
 
         const boardsRef = collection(db, `boards`)
         const boardRef = doc(boardsRef, boardId)
 
         if (isCreate) {
-            logEvent(analytics, 'created_task')
+            console.log("Task created");
+            logEvent(analytics, "created_task")
         }
 
         if (isUpdate) {
-            logEvent(analytics, 'updated_task')
+            console.log("Task updated");
+            logEvent(analytics, "updated_task")
         }
 
         if (isDelete) {
-            logEvent(analytics, 'deleted_task')
+            console.log("Task deleted");
+            logEvent(analytics, "deleted_task")
         }
 
         await setDoc(boardRef, {
             "tasks": $state.snapshot(tasks).map(({id, status, title}) => {
-                return {id, status, title};
+                return {id, status, title: title.trim()};
             }),
         }, {merge: true})
     }
@@ -262,13 +270,13 @@
     }
 
     function removeRecentBoard(id: string) {
-        let data = localStorage.getItem('recent') ?? '';
+        let data = localStorage.getItem("recent") ?? "";
         let boardIds = (JSON.parse(data) ?? []) as string[];
         boardIds = boardIds.filter((boardId) => boardId != id);
         menuItems = boardIds
         if (id === boardId && menuItems.length > 0) goto(menuItems[0])
         data = JSON.stringify(boardIds)
-        localStorage.setItem('recent', data)
+        localStorage.setItem("recent", data)
     }
 
     function copyToClipboard() {
@@ -277,10 +285,10 @@
 
     function onTaskClicked(event: MouseEvent, task: Task) {
         // @ts-ignore
-        const isATag = event.target?.tagName.toLowerCase() === 'a';
+        const isATag = event.target?.tagName.toLowerCase() === "a";
         if (isATag) {
             // @ts-ignore
-            event.target.setAttribute('target', '_blank');
+            event.target.setAttribute("target", "_blank");
             event.stopPropagation()
         } else {
             task.editable = true
@@ -293,6 +301,9 @@
         }
     }
 
+    function _isEmpty(value: string) {
+        return value.trim().length === 0;
+    }
 </script>
 
 <div class="group">
@@ -380,7 +391,7 @@
                                  role="none">
                             </div>
                         {:else}
-                            <div class="rounded-lg box-border border border-slate-300 my-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-4 px-4 pt-4 bg-white"
+                            <div class="rounded-lg box-border border border-slate-300 my-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-[58px] px-4 pt-4 bg-white"
                                  draggable="true"
                                  onclick={(event) => onTaskClicked(event, task)}
                                  ondragstart={(event) => onDrag(event, task)}
