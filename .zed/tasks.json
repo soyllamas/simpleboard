@@ -1,0 +1,68 @@
+[
+	{
+		"label": "dev",
+		"command": "npm",
+		"args": ["run", "dev"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+		"reveal": "always"
+	},
+	{
+		"label": "build",
+		"command": "npm",
+		"args": ["run", "build"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+		"reveal": "always",
+		"hide": "on_success"
+	},
+	{
+		"label": "preview",
+		"command": "npm",
+		"args": ["run", "preview"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+		"reveal": "always"
+	},
+	{
+		"label": "test",
+		"command": "npm",
+		"args": ["run", "test"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": true,
+		"reveal": "always"
+	},
+	{
+		"label": "check",
+		"command": "npm",
+		"args": ["run", "check"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+		"reveal": "always",
+		"hide": "on_success"
+	},
+	{
+		"label": "check:watch",
+		"command": "npm",
+		"args": ["run", "check:watch"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+		"reveal": "always"
+	},
+	{
+		"label": "test:integration",
+		"command": "npm",
+		"args": ["run", "test:integration"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": true,
+		"reveal": "always"
+	},
+	{
+		"label": "test:unit",
+		"command": "npm",
+		"args": ["run", "test:unit"],
+		"use_new_terminal": false,
+		"allow_concurrent_runs": true,
+		"reveal": "always"
+	}
+]
