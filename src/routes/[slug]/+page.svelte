@@ -5,6 +5,7 @@
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import equal from "fast-deep-equal";
+	import { createTask, updateTask, deleteTask, reorderTasks } from "./board.remote";
 
 	let unsubscribe: any;
 
@@ -103,11 +104,12 @@
 		event.dataTransfer?.setData("text/plain", task.id);
 	}
 
-	function onDrop(event: DragEvent, status: string) {
+	async function onDrop(event: DragEvent, status: string) {
 		event.preventDefault();
 
 		const taskId = event.dataTransfer?.getData("text/plain");
 		const task = tasks.find((task) => task.id === taskId);
+		if (!task) return;
 
 		let underTask = null;
 		let topZone = Number.MAX_VALUE;
@@ -134,12 +136,32 @@
 		const underIndex = tasks.indexOf(underTask!);
 		const _tasks = tasks.filter((task) => task.id !== taskId);
 
-		task!.status = status;
-		tasks = _tasks.slice(0, underIndex).concat(task!, _tasks.slice(underIndex));
-		_updateInTheBackend(task!);
+		const snapshot = $state.snapshot(tasks) as any;
+		const oldStatus = task.status;
+
+		task.status = status;
+		tasks = _tasks.slice(0, underIndex).concat(task, _tasks.slice(underIndex));
+
+		try {
+			const normalizedTasks: Array<{ id: string; status: "todo" | "doing" | "done"; title: string }> = $state
+				.snapshot(tasks)
+				.map(({ id, status, title }: any) => ({
+					id,
+					status,
+					title,
+				}));
+			await reorderTasks({
+				boardId: data.boardId,
+				tasks: normalizedTasks,
+			});
+		} catch (error) {
+			task.status = oldStatus;
+			tasks = snapshot as any;
+			console.error("Failed to reorder tasks:", error);
+		}
 	}
 
-	function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
+	async function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
 		const isEnter = event.key === "Enter" && !event.shiftKey;
 		const isEscape = event.key === "Escape";
 
@@ -148,19 +170,47 @@
 		}
 
 		if (isEnter) {
-			_updateTask(task);
-			_updateInTheBackend(task);
+			await _updateTask(task);
 		}
 	}
 
-	function _updateTask(task: Task) {
+	async function _updateTask(task: Task) {
 		task.instance.blur();
+
+		const snapshot = $state.snapshot(tasks) as any;
+		const oldTitle = task.title;
+
 		if (_isEmpty(task.title)) {
 			tasks = tasks.filter((item) => item.id !== task.id);
+
+			try {
+				await deleteTask({
+					boardId: data.boardId,
+					taskId: task.id,
+				});
+			} catch (error) {
+				tasks = snapshot as any;
+				console.error("Failed to delete task:", error);
+			}
+		} else {
+			task.title = task.title.trim();
+			tasks = tasks.map((t) => (t.id === task.id ? { ...t, title: t.title.trim() } : t)) as any;
+
+			try {
+				await updateTask({
+					boardId: data.boardId,
+					task: {
+						id: task.id,
+						status: task.status as "todo" | "doing" | "done",
+						title: task.title,
+					},
+				});
+			} catch (error) {
+				task.title = oldTitle;
+				tasks = snapshot as any;
+				console.error("Failed to update task:", error);
+			}
 		}
-		tasks = tasks.map((task) => {
-			return { ...task, title: task.title.trim() };
-		});
 	}
 
 	function onKeyDownCreateTask(event: KeyboardEvent) {
@@ -184,7 +234,7 @@
 		}
 	}
 
-	function _createTask(title: string) {
+	async function _createTask(title: string) {
 		if (_isEmpty(title)) return;
 
 		const taskId = _getId();
@@ -195,8 +245,22 @@
 			editable: false,
 		} as Task;
 
+		const snapshot = $state.snapshot(tasks) as any;
 		tasks.unshift(task);
-		_updateInTheBackend(task, true);
+
+		try {
+			await createTask({
+				boardId: data.boardId,
+				task: {
+					id: task.id,
+					status: task.status as "todo" | "doing" | "done",
+					title: task.title,
+				},
+			});
+		} catch (error) {
+			tasks = snapshot as any;
+			console.error("Failed to create task:", error);
+		}
 	}
 
 	function onCreateTaskPressed() {
@@ -220,43 +284,6 @@
 	function _getId() {
 		_generateId().then((id) => (nextTaskId = id));
 		return nextTaskId;
-	}
-
-	async function _updateInTheBackend(task: Task, isCreate: boolean = false) {
-		if (!browser) return;
-
-		const { db, analytics } = await import("$lib/client/firebase");
-		const { logEvent } = await import("firebase/analytics");
-		const { collection, doc, setDoc } = await import("firebase/firestore");
-
-		const isDelete = tasks.find((item) => item.id == task.id) === undefined;
-		const isUpdate = !isCreate && !isDelete;
-
-		const boardsRef = collection(db, `boards`);
-		const boardRef = doc(boardsRef, data.boardId);
-
-		if (isCreate) {
-			logEvent(analytics, "created_task");
-		}
-
-		if (isUpdate) {
-			logEvent(analytics, "updated_task");
-		}
-
-		if (isDelete) {
-			logEvent(analytics, "deleted_task");
-		}
-
-		const taskSnapshot = $state.snapshot(tasks) as Task[];
-		await setDoc(
-			boardRef,
-			{
-				tasks: taskSnapshot.map(({ id, status, title }) => {
-					return { id, status, title: title.trim() };
-				}),
-			},
-			{ merge: true },
-		);
 	}
 
 	function _setCursorAtEnd() {
