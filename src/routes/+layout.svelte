@@ -1,11 +1,13 @@
 <script>
-    import "../app.css";
+	import "../app.css";
+
+	let { children } = $props();
 </script>
 
-<slot/>
+{@render children()}
 
 <style>
-    :global(body) {
-        background-color: #fff;
-    }
+	:global(body) {
+		background-color: #fff;
+	}
 </style>

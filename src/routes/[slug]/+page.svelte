@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
 	import type { Task } from "$lib/domain/entity/task";
-	import type { Unsubscribe } from "@firebase/firestore";
 	import Markdoc from "@markdoc/markdoc";
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import equal from "fast-deep-equal";
 
-	let unsubscribe: Unsubscribe;
+	let unsubscribe: any;
 
 	type Column = {
 		id: string;
@@ -19,9 +18,6 @@
 	let menuItems = $state<string[]>([]);
 
 	onMount(async () => {
-		// Start Analytics
-		let { analytics } = await import("$lib/client/firebase");
-
 		nextTaskId = await _generateId();
 
 		// Request focus if tasks are empty
@@ -86,8 +82,8 @@
 	async function listenToChanges(boardId: string) {
 		if (!browser) return;
 
-		let { db } = await import("$lib/client/firebase");
-		let { doc, onSnapshot } = await import("firebase/firestore");
+		const { db } = await import("$lib/client/firebase");
+		const { doc, onSnapshot } = await import("firebase/firestore");
 
 		unsubscribe?.();
 		unsubscribe = onSnapshot(doc(db, "boards", boardId), (snapshot) => {
@@ -212,9 +208,10 @@
 	}
 
 	async function _generateId() {
-		let { collection, doc } = await import("@firebase/firestore");
-		let { db } = await import("$lib/client/firebase");
+		if (!browser) return "";
 
+		const { db } = await import("$lib/client/firebase");
+		const { collection, doc } = await import("firebase/firestore");
 		const boardsRef = collection(db, `boards`);
 
 		return doc(boardsRef).id;
@@ -226,9 +223,11 @@
 	}
 
 	async function _updateInTheBackend(task: Task, isCreate: boolean = false) {
-		let { logEvent } = await import("@firebase/analytics");
-		let { collection, doc, setDoc } = await import("@firebase/firestore");
-		let { db, analytics } = await import("$lib/client/firebase");
+		if (!browser) return;
+
+		const { db, analytics } = await import("$lib/client/firebase");
+		const { logEvent } = await import("firebase/analytics");
+		const { collection, doc, setDoc } = await import("firebase/firestore");
 
 		const isDelete = tasks.find((item) => item.id == task.id) === undefined;
 		const isUpdate = !isCreate && !isDelete;
