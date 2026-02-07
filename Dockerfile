@@ -9,7 +9,7 @@ ARG PUBLIC_FIREBASE_CONFIG
 ENV FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
 ENV PUBLIC_FIREBASE_CONFIG=${PUBLIC_FIREBASE_CONFIG}
 
-COPY package.json bun.lock ./
+COPY package.json bun.lockb ./
 RUN bun install --frozen-lockfile
 
 COPY . .

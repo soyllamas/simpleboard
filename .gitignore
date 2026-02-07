@@ -128,5 +128,6 @@ symlink-from
 serviceAccount.json
 firebaseConfig.json
 
-# Bun
-bun.lockb
+# Bun lockfiles - commit for reproducible builds
+# bun.lockb is binary format, bun.lock is text format
+# Both should be committed
