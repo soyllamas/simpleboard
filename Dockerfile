@@ -1,4 +1,5 @@
-FROM node:22-alpine AS builder
+# Use the official Bun image - updated to Bun 1.3.8
+FROM oven/bun:1.3.8 AS builder
 
 WORKDIR /app
 
@@ -8,15 +9,14 @@ ARG PUBLIC_FIREBASE_CONFIG
 ENV FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
 ENV PUBLIC_FIREBASE_CONFIG=${PUBLIC_FIREBASE_CONFIG}
 
-COPY package*.json ./
-RUN npm ci
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY . .
-RUN npm run build
+RUN bun --bun run build
 
-RUN npm prune --production
-
-FROM node:22-alpine
+# Production stage
+FROM oven/bun:1.3.8
 
 WORKDIR /app
 
@@ -27,4 +27,4 @@ COPY package.json .
 EXPOSE 3000
 ENV NODE_ENV=production
 
-CMD [ "node", "build" ]
+CMD ["bun", "./build/index.js"]

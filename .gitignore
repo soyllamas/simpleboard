@@ -127,3 +127,6 @@ symlink-from
 
 serviceAccount.json
 firebaseConfig.json
+
+# Bun
+bun.lockb
