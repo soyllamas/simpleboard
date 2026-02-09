@@ -112,6 +112,8 @@ tmp
 
 test-results/
 yarn.lock
+package-lock.json
+pnpm-lock.yaml
 /packages/create-svelte/template/CHANGELOG.md
 /packages/package/test/**/package
 /documentation/types.js
