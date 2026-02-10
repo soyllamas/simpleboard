@@ -3,7 +3,10 @@
 	import { goto } from "$app/navigation";
 
 	let { data } = $props();
-	let url = $derived(sanitize(data.boardId));
+
+	// svelte-ignore state_referenced_locally
+	let boardId = $state(data.boardId);
+	let url = $derived(sanitize(boardId));
 
 	function onKeyDown(event: KeyboardEvent) {
 		const isEnter = event.key === "Enter" && !event.shiftKey;
@@ -33,7 +36,7 @@
 			class="text-[1rem] bg-slate-50 px-3 py-1.5 outline-blue-600 border border-slate-300 text-slate-700 flex-grow min-w-0"
 			minlength="10"
 			onkeydown={(event) => onKeyDown(event)}
-			value={data.boardId}
+			bind:value={boardId}
 		/>
 		<a class="bg-blue-600 text-slate-50 rounded-r-lg px-4 py-1.5 shrink-0" href={url}> Join </a>
 	</div>
