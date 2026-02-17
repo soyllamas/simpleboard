@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:svelte.dev)",
+      "Bash(claude mcp add:*)",
+      "Bash(unset:*)"
+    ]
+  }
+}
