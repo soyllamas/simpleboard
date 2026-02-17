@@ -6,6 +6,8 @@
 	import { goto } from "$app/navigation";
 	import equal from "fast-deep-equal";
 	import { createTask, updateTask, deleteTask, reorderTasks } from "./board.remote";
+	import EmojiPicker from "$lib/components/EmojiPicker.svelte";
+	import { detectExactMatch, resolveNodeOffset, type TriggerState } from "$lib/domain/useCase/emoji";
 
 	let unsubscribe: any;
 
@@ -61,6 +63,8 @@
 
 	let addTask = $state(false);
 	let addTaskInput = $state<HTMLDivElement>();
+	let emojiPicker = $state<ReturnType<typeof EmojiPicker>>();
+	let activeEditableElement = $state<HTMLElement | undefined>();
 
 	const columns = $derived([
 		{
@@ -162,6 +166,8 @@
 	}
 
 	async function onKeyDownUpdateTask(event: KeyboardEvent, task: Task) {
+		if (emojiPicker?.handleKeyDown(event)) return;
+
 		const isEnter = event.key === "Enter" && !event.shiftKey;
 		const isEscape = event.key === "Escape";
 
@@ -214,6 +220,8 @@
 	}
 
 	function onKeyDownCreateTask(event: KeyboardEvent) {
+		if (emojiPicker?.handleKeyDown(event)) return;
+
 		const isEnter = event.key === "Enter" && !event.shiftKey;
 		const isEscape = event.key === "Escape";
 		const title = addTaskInput!.innerText;
@@ -333,6 +341,42 @@
 		}
 	}
 
+	function insertEmoji(target: HTMLElement, emoji: string, triggerOffset: number, cursorOffset: number) {
+		const text = target.innerText;
+		const before = text.slice(0, triggerOffset);
+		const after = text.slice(cursorOffset);
+		target.innerText = before + emoji + after;
+
+		// Position cursor after the inserted emoji
+		const newCursorPos = triggerOffset + emoji.length;
+		const resolved = resolveNodeOffset(target, newCursorPos);
+		if (resolved) {
+			const selection = window.getSelection();
+			const range = document.createRange();
+			range.setStart(resolved.node, resolved.offset);
+			range.collapse(true);
+			selection!.removeAllRanges();
+			selection!.addRange(range);
+		}
+
+		// Sync Svelte's bind:innerText
+		target.dispatchEvent(new Event("input", { bubbles: true }));
+	}
+
+	function onEmojiSelect(emoji: string, triggerState: TriggerState) {
+		if (activeEditableElement) {
+			insertEmoji(activeEditableElement, emoji, triggerState.triggerOffset, triggerState.cursorOffset);
+		}
+	}
+
+	function onEditableInput(event: Event) {
+		const target = event.currentTarget as HTMLElement;
+		const match = detectExactMatch(target);
+		if (match) {
+			insertEmoji(target, match.emoji, match.triggerOffset, match.cursorOffset);
+		}
+	}
+
 	function _isEmpty(value: string) {
 		return value.trim().length === 0;
 	}
@@ -428,9 +472,10 @@
 							contenteditable="plaintext-only"
 							class="rounded-lg my-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
 							class:hidden={!addTask && tasks.length !== 0}
-							onfocusin={() => (addTask = true)}
-							onfocusout={() => (addTask = false)}
+							onfocusin={() => { addTask = true; activeEditableElement = addTaskInput; }}
+							onfocusout={() => { addTask = false; activeEditableElement = undefined; }}
 							onkeydown={(event) => onKeyDownCreateTask(event)}
+							oninput={(event) => onEditableInput(event)}
 							bind:this={addTaskInput}
 							role="none"
 						></div>
@@ -440,7 +485,9 @@
 							<div
 								contenteditable="plaintext-only"
 								onkeydown={(event) => onKeyDownUpdateTask(event, task)}
-								onblur={() => (task.editable = false)}
+								onfocusin={() => { activeEditableElement = task.instance; }}
+								onblur={() => { task.editable = false; activeEditableElement = undefined; }}
+								oninput={(event) => onEditableInput(event)}
 								class="selected box-border cursor-text rounded-lg text-slate-700 my-3 skew-x-0 whitespace-pre-line p-4 min-h-4 outline-none"
 								bind:this={task.instance}
 								bind:innerText={task.title}
@@ -464,6 +511,8 @@
 		{/each}
 	</div>
 </div>
+
+<EmojiPicker bind:this={emojiPicker} element={activeEditableElement} onselect={onEmojiSelect} />
 
 <style lang="postcss">
 	.selected {
