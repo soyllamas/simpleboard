@@ -377,6 +377,28 @@
 		}
 	}
 
+	function onPaste(event: ClipboardEvent) {
+		const url = event.clipboardData?.getData("text/plain") ?? "";
+		if (!isUrl(url)) return;
+
+		const selection = window.getSelection();
+		const selectedText = selection?.toString() ?? "";
+		if (!selectedText) return;
+
+		event.preventDefault();
+		const anchor = `[${selectedText}](${url})`;
+		document.execCommand("insertText", false, anchor);
+	}
+
+	function isUrl(text: string) {
+		try {
+			const url = new URL(text);
+			return url.protocol === "http:" || url.protocol === "https:";
+		} catch {
+			return false;
+		}
+	}
+
 	function _isEmpty(value: string) {
 		return value.trim().length === 0;
 	}
@@ -476,6 +498,7 @@
 							onfocusout={() => { addTask = false; activeEditableElement = undefined; }}
 							onkeydown={(event) => onKeyDownCreateTask(event)}
 							oninput={(event) => onEditableInput(event)}
+							onpaste={(event) => onPaste(event)}
 							bind:this={addTaskInput}
 							role="none"
 						></div>
@@ -488,6 +511,7 @@
 								onfocusin={() => { activeEditableElement = task.instance; }}
 								onblur={() => { task.editable = false; activeEditableElement = undefined; }}
 								oninput={(event) => onEditableInput(event)}
+								onpaste={(event) => onPaste(event)}
 								class="selected box-border cursor-text rounded-lg text-slate-700 my-3 skew-x-0 whitespace-pre-line p-4 min-h-4 outline-none"
 								bind:this={task.instance}
 								bind:innerText={task.title}
