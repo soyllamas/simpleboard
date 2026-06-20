@@ -596,25 +596,7 @@
 	</h1>
 {/snippet}
 
-<header
-	class="mx-auto flex max-w-[960px] items-center gap-3 px-4 pt-4 sm:pt-6 lg:block lg:max-w-[min(960px,calc(100%-8rem))] lg:px-0 lg:pt-0"
->
-	{@render menuButton("lg:fixed lg:top-6 lg:left-6")}
-	{@render boardTitle("grow text-center lg:my-8 lg:block lg:text-left")}
-	{@render settingsButton("lg:fixed lg:top-6 lg:right-6")}
-</header>
-
-<button
-	type="button"
-	class={`fixed inset-0 z-40 bg-slate-950/10 transition-opacity duration-300 lg:hidden ${menuOpen || settingsOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
-	aria-label="Close panel"
-	onclick={closePanels}
-></button>
-
-<aside
-	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-[14px] pt-4 pb-6 transition-transform duration-300 lg:inset-y-0 lg:right-auto lg:bottom-auto lg:h-dvh lg:min-h-0 lg:w-64 lg:max-h-none lg:rounded-none lg:border-t-0 lg:border-r lg:pb-4 ${menuOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:-translate-x-full"}`}
-	onmouseleave={closeMenuOnDesktop}
->
+{#snippet menuPanelContent()}
 	<a class="mb-6 block rounded-lg px-[10px] py-2 hover:bg-slate-100" href="/">
 		<h3 class="text-xl font-bold">SimpleBoard</h3>
 		<p class="mt-0.5 text-[11px] font-normal text-slate-500">Kanban for minimalists</p>
@@ -643,20 +625,17 @@
 			</svg>
 		</div>
 	{/each}
-</aside>
+{/snippet}
 
-<aside
-	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-4 pt-4 pb-6 transition-transform duration-300 lg:inset-y-0 lg:left-auto lg:bottom-auto lg:h-dvh lg:min-h-0 lg:w-72 lg:max-h-none lg:rounded-none lg:border-t-0 lg:border-l lg:pb-4 ${settingsOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:translate-x-full"}`}
-	onmouseleave={closeSettingsOnDesktop}
->
+{#snippet settingsPanelContent(expirationId: string)}
 	<h2 class="text-lg/7 font-semibold text-slate-950 sm:text-base/6">Settings</h2>
 	<div class="mt-5">
-		<label for="expiration" class="text-base/6 font-medium text-slate-950 sm:text-sm/6">
+		<label for={expirationId} class="text-base/6 font-medium text-slate-950 sm:text-sm/6">
 			Auto-delete after
 		</label>
 		<div class="mt-2 inline-grid w-full grid-cols-[1fr_--spacing(8)]">
 			<select
-				id="expiration"
+				id={expirationId}
 				name="expiration"
 				value={expirationSetting}
 				onchange={(event) => onExpirationChange(event)}
@@ -677,6 +656,47 @@
 			</svg>
 		</div>
 	</div>
+{/snippet}
+
+<header
+	class="mx-auto flex max-w-[960px] items-center gap-3 px-4 pt-4 sm:pt-6 lg:block lg:max-w-[min(960px,calc(100%-8rem))] lg:px-0 lg:pt-0"
+>
+	{@render menuButton("lg:fixed lg:top-6 lg:left-6")}
+	{@render boardTitle("grow text-center lg:my-8 lg:block lg:text-left")}
+	{@render settingsButton("lg:fixed lg:top-6 lg:right-6")}
+</header>
+
+<button
+	type="button"
+	class={`fixed inset-0 z-40 bg-slate-950/10 transition-opacity duration-300 lg:hidden ${menuOpen || settingsOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+	aria-label="Close panel"
+	onclick={closePanels}
+></button>
+
+<aside
+	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-[14px] pt-4 pb-6 transition-transform duration-300 lg:hidden ${menuOpen ? "translate-y-0" : "translate-y-full"}`}
+>
+	{@render menuPanelContent()}
+</aside>
+
+<aside
+	class={`fixed inset-y-0 left-0 z-50 hidden h-dvh w-64 overflow-y-auto border-r border-slate-300 bg-white px-[14px] pt-4 pb-4 transition-transform duration-300 lg:block ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
+	onmouseleave={closeMenuOnDesktop}
+>
+	{@render menuPanelContent()}
+</aside>
+
+<aside
+	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-4 pt-4 pb-6 transition-transform duration-300 lg:hidden ${settingsOpen ? "translate-y-0" : "translate-y-full"}`}
+>
+	{@render settingsPanelContent("mobile-expiration")}
+</aside>
+
+<aside
+	class={`fixed inset-y-0 right-0 z-50 hidden h-dvh w-72 overflow-y-auto border-l border-slate-300 bg-white px-4 pt-4 pb-4 transition-transform duration-300 lg:block ${settingsOpen ? "translate-x-0" : "translate-x-full"}`}
+	onmouseleave={closeSettingsOnDesktop}
+>
+	{@render settingsPanelContent("desktop-expiration")}
 </aside>
 
 <div class="mx-auto max-w-[960px] px-4">
