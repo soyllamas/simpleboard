@@ -1,6 +1,12 @@
 import * as v from 'valibot';
 import { command } from '$app/server';
+import {
+	getBoardActivityFields,
+	getBoardExpirationFields,
+	type BoardExpiration
+} from '$lib/server/board-expiration';
 import { firestore } from '$lib/server/firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 
 type ServerTask = {
 	id: string;
@@ -34,6 +40,11 @@ const deleteTaskSchema = v.object({
 	taskId: v.string()
 });
 
+const expirationSchema = v.object({
+	boardId: v.string(),
+	expiration: v.picklist(['30', '90', 'never'])
+});
+
 type TaskInput = Omit<ServerTask, 'updatedAt'>;
 
 function normalizeTask(task: TaskInput, existingTask?: ServerTask, now = Timestamp.now()): ServerTask {
@@ -60,7 +71,7 @@ export const createTask = command(taskSchema, async ({ boardId, task }) => {
 	const normalizedTask = normalizeTask(task);
 	const updatedTasks = [normalizedTask, ...existingTasks];
 
-	await boardRef.set({ tasks: updatedTasks }, { merge: true });
+	await boardRef.set({ tasks: updatedTasks, ...getBoardActivityFields(snapshot) }, { merge: true });
 });
 
 export const updateTask = command(taskSchema, async ({ boardId, task }) => {
@@ -73,7 +84,7 @@ export const updateTask = command(taskSchema, async ({ boardId, task }) => {
 		t.id === normalizedTask.id ? normalizedTask : t
 	);
 
-	await boardRef.set({ tasks: updatedTasks }, { merge: true });
+	await boardRef.set({ tasks: updatedTasks, ...getBoardActivityFields(snapshot) }, { merge: true });
 });
 
 export const deleteTask = command(deleteTaskSchema, async ({ boardId, taskId }) => {
@@ -83,7 +94,7 @@ export const deleteTask = command(deleteTaskSchema, async ({ boardId, taskId }) 
 
 	const updatedTasks = existingTasks.filter((t) => t.id !== taskId);
 
-	await boardRef.set({ tasks: updatedTasks }, { merge: true });
+	await boardRef.set({ tasks: updatedTasks, ...getBoardActivityFields(snapshot) }, { merge: true });
 });
 
 export const reorderTasks = command(tasksSchema, async ({ boardId, tasks }) => {
@@ -96,5 +107,11 @@ export const reorderTasks = command(tasksSchema, async ({ boardId, tasks }) => {
 		normalizeTask(task, existingTasksById.get(task.id), now)
 	);
 
-	await boardRef.set({ tasks: normalizedTasks }, { merge: true });
+	await boardRef.set({ tasks: normalizedTasks, ...getBoardActivityFields(snapshot, now) }, { merge: true });
+});
+
+export const updateExpiration = command(expirationSchema, async ({ boardId, expiration }) => {
+	const boardRef = firestore.doc(`boards/${boardId}`);
+
+	await boardRef.set(getBoardExpirationFields(expiration as BoardExpiration), { merge: true });
 });

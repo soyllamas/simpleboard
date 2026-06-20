@@ -1,4 +1,5 @@
 import type { Task } from '$lib/domain/entity/task';
+import { getBoardExpiration } from '$lib/server/board-expiration';
 import { firestore } from '$lib/server/firebase-admin';
 import type { PageServerLoad } from './$types';
 
@@ -15,6 +16,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	});
 	return {
 		boardId: boardId,
+		expiration: getBoardExpiration(snapshot),
 		tasks: tasks as Task[],
 		link: url.host + '/' + boardId
 	};

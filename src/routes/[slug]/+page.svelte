@@ -5,7 +5,7 @@
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import equal from "fast-deep-equal";
-	import { createTask, updateTask, deleteTask, reorderTasks } from "./board.remote";
+	import { createTask, updateTask, deleteTask, reorderTasks, updateExpiration } from "./board.remote";
 	import EmojiPicker from "$lib/components/EmojiPicker.svelte";
 	import { detectExactMatch, resolveNodeOffset, type TriggerState } from "$lib/domain/useCase/emoji";
 	import { getTaskUpdatedAtTime, isTaskVisibleToday } from "$lib/domain/useCase/taskVisibility";
@@ -20,7 +20,33 @@
 		instance: HTMLDivElement;
 	};
 
+	type ExpirationValue = "30" | "90" | "never";
+
+	type ExpirationOption = {
+		value: ExpirationValue;
+		name: string;
+	};
+
+	const expirationOptions: ExpirationOption[] = [
+		{
+			value: "30",
+			name: "30 days of inactivity",
+		},
+		{
+			value: "90",
+			name: "90 days of inactivity",
+		},
+		{
+			value: "never",
+			name: "Do not delete",
+		},
+	];
+
+	let { data } = $props();
 	let menuItems = $state<string[]>([]);
+	let currentBoardId = $state<string>();
+	let selectedExpiration = $state<ExpirationValue | undefined>();
+	let expirationSetting = $derived(selectedExpiration ?? parseExpiration(data.expiration));
 
 	onMount(async () => {
 		nextTaskId = await _generateId();
@@ -53,7 +79,6 @@
 		clearInterval(refreshToday);
 	});
 
-	let { data } = $props();
 	// svelte-ignore state_referenced_locally
 	let tasks = $state(data.tasks ?? []);
 	let today = $state(new Date());
@@ -61,6 +86,11 @@
 	let nextTaskId = "";
 
 	$effect(() => {
+		if (currentBoardId !== data.boardId) {
+			currentBoardId = data.boardId;
+			selectedExpiration = undefined;
+		}
+
 		tasks = data.tasks ?? [];
 		listenToChanges(data.boardId);
 	});
@@ -101,10 +131,17 @@
 
 		unsubscribe?.();
 		unsubscribe = onSnapshot(doc(db, "boards", boardId), (snapshot) => {
+			if (!snapshot.exists()) return;
+
 			const remoteTasks = snapshot.get("tasks") ?? [];
+			const remoteExpiration = parseExpiration(snapshot.get("expiration"));
 			const taskSnapshot = $state.snapshot(tasks) as Task[];
 			const localTasks = taskSnapshot.map(toComparableTask);
 			const comparableRemoteTasks = remoteTasks.map(toComparableTask);
+
+			if (expirationSetting !== remoteExpiration) {
+				selectedExpiration = remoteExpiration;
+			}
 
 			if (!equal(localTasks, comparableRemoteTasks)) {
 				tasks = remoteTasks;
@@ -295,6 +332,23 @@
 		}
 	}
 
+	async function onExpirationChange(event: Event) {
+		const oldExpiration = expirationSetting;
+		const expiration = (event.currentTarget as HTMLSelectElement).value as ExpirationValue;
+
+		selectedExpiration = expiration;
+
+		try {
+			await updateExpiration({
+				boardId: data.boardId,
+				expiration,
+			});
+		} catch (error) {
+			selectedExpiration = oldExpiration;
+			console.error("Failed to update expiration:", error);
+		}
+	}
+
 	function onCreateTaskPressed() {
 		addTask = true;
 		setTimeout(() => {
@@ -426,6 +480,11 @@
 	function _isEmpty(value: string) {
 		return value.trim().length === 0;
 	}
+
+	function parseExpiration(value: unknown): ExpirationValue {
+		if (value === "30" || value === "90" || value === "never") return value;
+		return "30";
+	}
 </script>
 
 <script:head>
@@ -434,7 +493,7 @@
 
 <div class="group">
 	<button
-		class="absolute top-6 right-6 grid size-8 items-center justify-center rounded-lg border border-slate-300 bg-white md:left-6"
+		class="absolute top-6 left-6 grid size-8 items-center justify-center rounded-lg border border-slate-300 bg-white"
 		aria-label="Home"
 	>
 		<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20">
@@ -476,6 +535,61 @@
 				</svg>
 			</div>
 		{/each}
+	</div>
+</div>
+<div class="group/settings">
+	<button
+		type="button"
+		class="fixed top-6 right-6 grid size-8 items-center justify-center rounded-lg border border-slate-300 bg-white"
+		aria-label="Board settings"
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="size-5"
+		>
+			<path d="M20 7h-9" />
+			<path d="M14 17H5" />
+			<circle cx="17" cy="17" r="3" />
+			<circle cx="7" cy="7" r="3" />
+		</svg>
+	</button>
+	<div
+		class="fixed top-0 right-0 z-50 h-dvh w-72 translate-x-full border-l border-slate-300 bg-white px-4 py-4 duration-300 group-hover/settings:translate-x-0"
+	>
+		<h2 class="text-lg/7 font-semibold text-slate-950 sm:text-base/6">Settings</h2>
+		<div class="mt-5">
+			<label for="expiration" class="text-base/6 font-medium text-slate-950 sm:text-sm/6">
+				Auto-delete after
+			</label>
+			<div class="mt-2 inline-grid w-full grid-cols-[1fr_--spacing(8)]">
+				<select
+					id="expiration"
+					name="expiration"
+					value={expirationSetting}
+					onchange={(event) => onExpirationChange(event)}
+					class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6"
+				>
+					{#each expirationOptions as option (option.value)}
+						<option value={option.value}>{option.name}</option>
+					{/each}
+				</select>
+				<svg
+					viewBox="0 0 8 5"
+					width="8"
+					height="5"
+					fill="none"
+					class="pointer-events-none col-start-2 row-start-1 place-self-center"
+				>
+					<path d="M.5.5 4 4 7.5.5" stroke="currentcolor" />
+				</svg>
+			</div>
+		</div>
 	</div>
 </div>
 <div class="mx-auto max-w-[960px] px-4">
