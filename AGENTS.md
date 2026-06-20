@@ -1,6 +1,31 @@
 # SimpleBoard
 
-SvelteKit 5 + Firebase app using Bun runtime. Deployed to Cloud Run via GitHub Actions.
+## General Rules
+
+- Always validate your responses are trustworthy.
+- When talking back to me; Keep things short and simple, be concise.
+- This project uses bun as the package manager and runtime. Always use `bun install` instead of `npm install`, and `bun run` instead of `npm run`.
+
+## Philosophical Beliefs
+
+- Design lightweight and intuitive interfaces.
+- Keep code implementation short and simple.
+- Write elegant and idiomatic code.
+- Write intention-revealing names.
+- Write pronounceable and searchable names.
+- Write code that explains itself.
+- Do not use abbreviations.
+- Functions should do one thing well.
+- Keep functions small.
+- Maintain one level of abstraction per function.
+- Avoid using comments.
+- Prefer code clarity over comments.
+- Explain why, not what in comments.
+- Order code to read top-to-bottom naturally.
+- Choose the simplest solution that works.
+- Value simplicity and clarity over cleverness.
+- Value readability over brevity.
+- Less is more.
 
 ## Stack
 
@@ -11,33 +36,3 @@ SvelteKit 5 + Firebase app using Bun runtime. Deployed to Cloud Run via GitHub A
 - **Validation:** Valibot
 - **Testing:** Vitest (unit), Playwright (integration)
 - **Adapter:** svelte-adapter-bun
-
-## Commands
-
-- `bun install` — install dependencies
-- `bun run dev` — start dev server
-- `bun run build` — production build
-- `bun run test` — run Vitest
-- `bun run test:e2e` — run Playwright
-
-## Architecture
-
-Domain-Driven Design with Clean Architecture:
-
-```
-src/lib/domain/entity/    — domain entities
-src/lib/domain/useCase/   — business logic
-src/lib/client/           — client-side infrastructure (Firebase)
-src/lib/server/           — server-side infrastructure (Firebase Admin)
-src/lib/components/       — UI components
-src/routes/               — SvelteKit routes and server logic
-```
-
-## Rules
-
-See `.agents/rules/` for detailed guidelines:
-
-- `general.md` — project-specific rules (bun usage)
-- `conventions.md` — code style conventions
-- `software-design.md` — architectural principles
-- `btca.md` — btca CLI tool usage
