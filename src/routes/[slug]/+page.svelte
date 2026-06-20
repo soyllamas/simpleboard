@@ -104,6 +104,8 @@
 	let addTaskInput = $state<HTMLDivElement>();
 	let emojiPicker = $state<ReturnType<typeof EmojiPicker>>();
 	let activeEditableElement = $state<HTMLElement | undefined>();
+	let menuOpen = $state(false);
+	let settingsOpen = $state(false);
 
 	const columns = $derived([
 		{
@@ -401,6 +403,45 @@
 		navigator.clipboard.writeText(data.link);
 	}
 
+	function toggleMenu() {
+		menuOpen = !menuOpen;
+		settingsOpen = false;
+	}
+
+	function toggleSettings() {
+		settingsOpen = !settingsOpen;
+		menuOpen = false;
+	}
+
+	function closePanels() {
+		menuOpen = false;
+		settingsOpen = false;
+	}
+
+	function openMenuOnDesktop() {
+		if (!isDesktopViewport()) return;
+		menuOpen = true;
+		settingsOpen = false;
+	}
+
+	function openSettingsOnDesktop() {
+		if (!isDesktopViewport()) return;
+		settingsOpen = true;
+		menuOpen = false;
+	}
+
+	function closeMenuOnDesktop() {
+		if (isDesktopViewport()) menuOpen = false;
+	}
+
+	function closeSettingsOnDesktop() {
+		if (isDesktopViewport()) settingsOpen = false;
+	}
+
+	function isDesktopViewport() {
+		return browser && window.matchMedia("(min-width: 1024px)").matches;
+	}
+
 	function onTaskClicked(event: MouseEvent, task: Task) {
 		// @ts-ignore
 		const isATag = event.target?.tagName.toLowerCase() === "a";
@@ -491,58 +532,42 @@
 	<title>#{data.boardId}</title>
 </script:head>
 
-<div class="group">
+{#snippet menuButton(classes: string)}
 	<button
-		class="absolute top-6 left-6 grid size-8 items-center justify-center rounded-lg border border-slate-300 bg-white"
-		aria-label="Home"
+		type="button"
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 ${classes}`}
+		aria-label="Open boards menu"
+		aria-expanded={menuOpen}
+		onclick={toggleMenu}
+		onmouseenter={openMenuOnDesktop}
+		onfocus={openMenuOnDesktop}
 	>
-		<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20">
+		<span
+			class="absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2 pointer-fine:hidden"
+			aria-hidden="true"
+		></span>
+		<svg xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 -960 960 960" aria-hidden="true">
 			<path
 				d="M180-264q-15.3 0-25.65-10.29Q144-284.58 144-299.79t10.35-25.71Q164.7-336 180-336h600q15.3 0 25.65 10.29Q816-315.42 816-300.21t-10.35 25.71Q795.3-264 780-264H180Zm0-180q-15.3 0-25.65-10.29Q144-464.58 144-479.79t10.35-25.71Q164.7-516 180-516h600q15.3 0 25.65 10.29Q816-495.42 816-480.21t-10.35 25.71Q795.3-444 780-444H180Zm0-180q-15.3 0-25.65-10.29Q144-644.58 144-659.79t10.35-25.71Q164.7-696 180-696h600q15.3 0 25.65 10.29Q816-675.42 816-660.21t-10.35 25.71Q795.3-624 780-624H180Z"
 			/>
 		</svg>
 	</button>
-	<div
-		class="absolute top-0 z-50 h-dvh w-64 -translate-x-64 border-r border-slate-300 bg-white px-[14px] py-4 duration-300 group-hover:translate-x-0"
-	>
-		<div class="cursor-pointer rounded-lg hover:bg-slate-100">
-			<a href="/">
-				<h3 class="mx-[10px] pt-2 text-xl font-bold">SimpleBoard</h3>
-				<p class="mx-[10px] mb-6 pb-2 text-[11px] font-normal text-slate-500">Kanban for minimalists</p>
-			</a>
-		</div>
-		<p class="mb-2 px-[10px] text-[12px] font-medium text-slate-500">Recent</p>
-		{#each menuItems as menuItem}
-			<div
-				class="group/item mb-1 flex items-center rounded-lg px-[10px] py-[6px]"
-				class:bg-slate-100={menuItem === data.boardId}
-			>
-				<a class="block w-full align-middle text-sm group-hover/item:underline" href={menuItem}>
-					#{menuItem}
-				</a>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="hidden cursor-pointer fill-slate-400 group-hover/item:block"
-					height="20px"
-					viewBox="0 -960 960 960"
-					width="20px"
-					onclick={() => removeRecentBoard(menuItem)}
-					role="none"
-				>
-					<path
-						d="M480-429 316-265q-11 11-25 10.5T266-266q-11-11-11-25.5t11-25.5l163-163-164-164q-11-11-10.5-25.5T266-695q11-11 25.5-11t25.5 11l163 164 164-164q11-11 25.5-11t25.5 11q11 11 11 25.5T695-644L531-480l164 164q11 11 11 25t-11 25q-11 11-25.5 11T644-266L480-429Z"
-					/>
-				</svg>
-			</div>
-		{/each}
-	</div>
-</div>
-<div class="group/settings">
+{/snippet}
+
+{#snippet settingsButton(classes: string)}
 	<button
 		type="button"
-		class="fixed top-6 right-6 grid size-8 items-center justify-center rounded-lg border border-slate-300 bg-white"
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 ${classes}`}
 		aria-label="Board settings"
+		aria-expanded={settingsOpen}
+		onclick={toggleSettings}
+		onmouseenter={openSettingsOnDesktop}
+		onfocus={openSettingsOnDesktop}
 	>
+		<span
+			class="absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2 pointer-fine:hidden"
+			aria-hidden="true"
+		></span>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 24 24"
@@ -559,48 +584,103 @@
 			<circle cx="7" cy="7" r="3" />
 		</svg>
 	</button>
-	<div
-		class="fixed top-0 right-0 z-50 h-dvh w-72 translate-x-full border-l border-slate-300 bg-white px-4 py-4 duration-300 group-hover/settings:translate-x-0"
-	>
-		<h2 class="text-lg/7 font-semibold text-slate-950 sm:text-base/6">Settings</h2>
-		<div class="mt-5">
-			<label for="expiration" class="text-base/6 font-medium text-slate-950 sm:text-sm/6">
-				Auto-delete after
-			</label>
-			<div class="mt-2 inline-grid w-full grid-cols-[1fr_--spacing(8)]">
-				<select
-					id="expiration"
-					name="expiration"
-					value={expirationSetting}
-					onchange={(event) => onExpirationChange(event)}
-					class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6"
-				>
-					{#each expirationOptions as option (option.value)}
-						<option value={option.value}>{option.name}</option>
-					{/each}
-				</select>
-				<svg
-					viewBox="0 0 8 5"
-					width="8"
-					height="5"
-					fill="none"
-					class="pointer-events-none col-start-2 row-start-1 place-self-center"
-				>
-					<path d="M.5.5 4 4 7.5.5" stroke="currentcolor" />
-				</svg>
-			</div>
-		</div>
-	</div>
-</div>
-<div class="mx-auto max-w-[960px] px-4">
+{/snippet}
+
+{#snippet boardTitle(classes: string)}
 	<h1
-		class="my-8 inline-block cursor-pointer text-2xl font-bold text-slate-950 hover:underline"
+		class={`min-w-0 cursor-pointer truncate text-2xl font-bold text-slate-950 hover:underline ${classes}`}
 		onclick={() => copyToClipboard()}
 		role="none"
 	>
 		#{data.boardId}
 	</h1>
-	<div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+{/snippet}
+
+<header
+	class="mx-auto flex max-w-[960px] items-center gap-3 px-4 pt-4 sm:pt-6 lg:block lg:max-w-[min(960px,calc(100%-8rem))] lg:px-0 lg:pt-0"
+>
+	{@render menuButton("lg:fixed lg:top-6 lg:left-6")}
+	{@render boardTitle("grow text-center lg:my-8 lg:block lg:text-left")}
+	{@render settingsButton("lg:fixed lg:top-6 lg:right-6")}
+</header>
+
+<button
+	type="button"
+	class={`fixed inset-0 z-40 bg-slate-950/10 transition-opacity duration-300 lg:hidden ${menuOpen || settingsOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+	aria-label="Close panel"
+	onclick={closePanels}
+></button>
+
+<aside
+	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-[14px] pt-4 pb-6 transition-transform duration-300 lg:inset-y-0 lg:right-auto lg:bottom-auto lg:h-dvh lg:min-h-0 lg:w-64 lg:max-h-none lg:rounded-none lg:border-t-0 lg:border-r lg:pb-4 ${menuOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:-translate-x-full"}`}
+	onmouseleave={closeMenuOnDesktop}
+>
+	<a class="mb-6 block rounded-lg px-[10px] py-2 hover:bg-slate-100" href="/">
+		<h3 class="text-xl font-bold">SimpleBoard</h3>
+		<p class="mt-0.5 text-[11px] font-normal text-slate-500">Kanban for minimalists</p>
+	</a>
+	<p class="mb-2 px-[10px] text-[12px] font-medium text-slate-500">Recent</p>
+	{#each menuItems as menuItem (menuItem)}
+		<div
+			class="group/item mb-1 flex items-center rounded-lg px-[10px] py-[6px]"
+			class:bg-slate-100={menuItem === data.boardId}
+		>
+			<a class="block w-full align-middle text-sm group-hover/item:underline" href={menuItem}>
+				#{menuItem}
+			</a>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="hidden cursor-pointer fill-slate-400 group-hover/item:block"
+				height="20px"
+				viewBox="0 -960 960 960"
+				width="20px"
+				onclick={() => removeRecentBoard(menuItem)}
+				role="none"
+			>
+				<path
+					d="M480-429 316-265q-11 11-25 10.5T266-266q-11-11-11-25.5t11-25.5l163-163-164-164q-11-11-10.5-25.5T266-695q11-11 25.5-11t25.5 11l163 164 164-164q11-11 25.5-11t25.5 11q11 11 11 25.5T695-644L531-480l164 164q11 11 11 25t-11 25q-11 11-25.5 11T644-266L480-429Z"
+				/>
+			</svg>
+		</div>
+	{/each}
+</aside>
+
+<aside
+	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-4 pt-4 pb-6 transition-transform duration-300 lg:inset-y-0 lg:left-auto lg:bottom-auto lg:h-dvh lg:min-h-0 lg:w-72 lg:max-h-none lg:rounded-none lg:border-t-0 lg:border-l lg:pb-4 ${settingsOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-y-0 lg:translate-x-full"}`}
+	onmouseleave={closeSettingsOnDesktop}
+>
+	<h2 class="text-lg/7 font-semibold text-slate-950 sm:text-base/6">Settings</h2>
+	<div class="mt-5">
+		<label for="expiration" class="text-base/6 font-medium text-slate-950 sm:text-sm/6">
+			Auto-delete after
+		</label>
+		<div class="mt-2 inline-grid w-full grid-cols-[1fr_--spacing(8)]">
+			<select
+				id="expiration"
+				name="expiration"
+				value={expirationSetting}
+				onchange={(event) => onExpirationChange(event)}
+				class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6"
+			>
+				{#each expirationOptions as option (option.value)}
+					<option value={option.value}>{option.name}</option>
+				{/each}
+			</select>
+			<svg
+				viewBox="0 0 8 5"
+				width="8"
+				height="5"
+				fill="none"
+				class="pointer-events-none col-start-2 row-start-1 place-self-center"
+			>
+				<path d="M.5.5 4 4 7.5.5" stroke="currentcolor" />
+			</svg>
+		</div>
+	</div>
+</aside>
+
+<div class="mx-auto max-w-[960px] px-4">
+	<div class="mt-8 mb-8 grid grid-cols-1 gap-6 md:grid-cols-3 lg:mt-0">
 		{#each columns as column (column.id)}
 			<div
 				class="md:flex md:min-h-[80vh] md:flex-col"
