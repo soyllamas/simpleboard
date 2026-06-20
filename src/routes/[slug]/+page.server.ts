@@ -9,7 +9,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		return {
 			id: data.id,
 			title: data.title,
-			status: data.status
+			status: data.status,
+			updatedAt: toDateString(data.updatedAt)
 		};
 	});
 	return {
@@ -18,3 +19,10 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		link: url.host + '/' + boardId
 	};
 };
+
+function toDateString(value: any) {
+	if (!value) return undefined;
+
+	const date = value instanceof Date ? value : value.toDate?.();
+	return date instanceof Date ? date.toISOString() : value;
+}

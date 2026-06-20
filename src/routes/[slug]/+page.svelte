@@ -8,11 +8,13 @@
 	import { createTask, updateTask, deleteTask, reorderTasks } from "./board.remote";
 	import EmojiPicker from "$lib/components/EmojiPicker.svelte";
 	import { detectExactMatch, resolveNodeOffset, type TriggerState } from "$lib/domain/useCase/emoji";
+	import { getTaskUpdatedAtTime, isTaskVisibleToday } from "$lib/domain/useCase/taskVisibility";
 
 	let unsubscribe: any;
+	let refreshToday: ReturnType<typeof setInterval>;
 
 	type Column = {
-		id: string;
+		id: Task["status"];
 		name: string;
 		tasks: Task[];
 		instance: HTMLDivElement;
@@ -40,15 +42,21 @@
 		}
 		stored = JSON.stringify($state.snapshot(menuItems));
 		localStorage.setItem("recent", stored);
+
+		refreshToday = setInterval(() => {
+			today = new Date();
+		}, 60_000);
 	});
 
 	onDestroy(() => {
 		unsubscribe?.();
+		clearInterval(refreshToday);
 	});
 
 	let { data } = $props();
 	// svelte-ignore state_referenced_locally
 	let tasks = $state(data.tasks ?? []);
+	let today = $state(new Date());
 
 	let nextTaskId = "";
 
@@ -57,9 +65,10 @@
 		listenToChanges(data.boardId);
 	});
 
-	let todo = $derived(tasks.filter((task) => task.status === "todo"));
-	let doing = $derived(tasks.filter((task) => task.status === "doing"));
-	let done = $derived(tasks.filter((task) => task.status === "done"));
+	let visibleTasks = $derived(tasks.filter((task) => isTaskVisibleToday(task, today)));
+	let todo = $derived(visibleTasks.filter((task) => task.status === "todo"));
+	let doing = $derived(visibleTasks.filter((task) => task.status === "doing"));
+	let done = $derived(visibleTasks.filter((task) => task.status === "done"));
 
 	let addTask = $state(false);
 	let addTaskInput = $state<HTMLDivElement>();
@@ -94,21 +103,29 @@
 		unsubscribe = onSnapshot(doc(db, "boards", boardId), (snapshot) => {
 			const remoteTasks = snapshot.get("tasks") ?? [];
 			const taskSnapshot = $state.snapshot(tasks) as Task[];
-			const localTasks = taskSnapshot.map(({ id, status, title }) => {
-				return { id, status, title };
-			});
+			const localTasks = taskSnapshot.map(toComparableTask);
+			const comparableRemoteTasks = remoteTasks.map(toComparableTask);
 
-			if (!equal(localTasks, remoteTasks)) {
+			if (!equal(localTasks, comparableRemoteTasks)) {
 				tasks = remoteTasks;
 			}
 		});
+	}
+
+	function toComparableTask(task: Task) {
+		return {
+			id: task.id,
+			status: task.status,
+			title: task.title,
+			updatedAt: getTaskUpdatedAtTime(task)
+		};
 	}
 
 	function onDrag(event: DragEvent, task: Task) {
 		event.dataTransfer?.setData("text/plain", task.id);
 	}
 
-	async function onDrop(event: DragEvent, status: string) {
+	async function onDrop(event: DragEvent, status: Task["status"]) {
 		event.preventDefault();
 
 		const taskId = event.dataTransfer?.getData("text/plain");
@@ -119,7 +136,7 @@
 		let topZone = Number.MAX_VALUE;
 		let bottomZone = 0;
 
-		for (let t of tasks.filter((task) => task.status == status)) {
+		for (let t of visibleTasks.filter((task) => task.status == status)) {
 			const { top, height } = t.instance.getBoundingClientRect();
 			const topBound = top - 6;
 			const bottomBound = top + height + 6;
@@ -144,6 +161,7 @@
 		const oldStatus = task.status;
 
 		task.status = status;
+		if (oldStatus !== status) task.updatedAt = new Date().toISOString();
 		tasks = _tasks.slice(0, underIndex).concat(task, _tasks.slice(underIndex));
 
 		try {
@@ -185,6 +203,7 @@
 
 		const snapshot = $state.snapshot(tasks) as any;
 		const oldTitle = task.title;
+		const oldUpdatedAt = task.updatedAt;
 
 		if (_isEmpty(task.title)) {
 			tasks = tasks.filter((item) => item.id !== task.id);
@@ -200,7 +219,10 @@
 			}
 		} else {
 			task.title = task.title.trim();
-			tasks = tasks.map((t) => (t.id === task.id ? { ...t, title: t.title.trim() } : t)) as any;
+			task.updatedAt = new Date().toISOString();
+			tasks = tasks.map((t) =>
+				t.id === task.id ? { ...t, title: t.title.trim(), updatedAt: task.updatedAt } : t
+			) as any;
 
 			try {
 				await updateTask({
@@ -213,6 +235,7 @@
 				});
 			} catch (error) {
 				task.title = oldTitle;
+				task.updatedAt = oldUpdatedAt;
 				tasks = snapshot as any;
 				console.error("Failed to update task:", error);
 			}
@@ -250,6 +273,7 @@
 			id: taskId,
 			status: "todo",
 			title: title.trim(),
+			updatedAt: new Date().toISOString(),
 			editable: false,
 		} as Task;
 

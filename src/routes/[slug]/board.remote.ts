@@ -4,8 +4,9 @@ import { firestore } from '$lib/server/firebase-admin';
 
 type ServerTask = {
 	id: string;
-	status: string;
+	status: 'todo' | 'doing' | 'done';
 	title: string;
+	updatedAt?: Timestamp;
 };
 
 const taskSchema = v.object({
@@ -33,12 +34,22 @@ const deleteTaskSchema = v.object({
 	taskId: v.string()
 });
 
-function normalizeTask(task: ServerTask): ServerTask {
-	return {
+type TaskInput = Omit<ServerTask, 'updatedAt'>;
+
+function normalizeTask(task: TaskInput, existingTask?: ServerTask, now = Timestamp.now()): ServerTask {
+	const title = task.title.trim();
+	const changed = existingTask?.status !== task.status || existingTask?.title !== title;
+	const updatedAt = !existingTask || changed ? now : existingTask.updatedAt;
+
+	const normalizedTask: ServerTask = {
 		id: task.id,
 		status: task.status,
-		title: task.title.trim()
+		title
 	};
+
+	if (updatedAt) normalizedTask.updatedAt = updatedAt;
+
+	return normalizedTask;
 }
 
 export const createTask = command(taskSchema, async ({ boardId, task }) => {
@@ -57,7 +68,7 @@ export const updateTask = command(taskSchema, async ({ boardId, task }) => {
 	const snapshot = await boardRef.get();
 	const existingTasks = (snapshot.get('tasks') ?? []) as ServerTask[];
 
-	const normalizedTask = normalizeTask(task);
+	const normalizedTask = normalizeTask(task, existingTasks.find((t) => t.id === task.id));
 	const updatedTasks = existingTasks.map((t) =>
 		t.id === normalizedTask.id ? normalizedTask : t
 	);
@@ -77,7 +88,13 @@ export const deleteTask = command(deleteTaskSchema, async ({ boardId, taskId }) 
 
 export const reorderTasks = command(tasksSchema, async ({ boardId, tasks }) => {
 	const boardRef = firestore.doc(`boards/${boardId}`);
-	const normalizedTasks = tasks.map(normalizeTask);
+	const snapshot = await boardRef.get();
+	const existingTasks = (snapshot.get('tasks') ?? []) as ServerTask[];
+	const existingTasksById = new Map(existingTasks.map((task) => [task.id, task]));
+	const now = Timestamp.now();
+	const normalizedTasks = tasks.map((task) =>
+		normalizeTask(task, existingTasksById.get(task.id), now)
+	);
 
 	await boardRef.set({ tasks: normalizedTasks }, { merge: true });
 });
