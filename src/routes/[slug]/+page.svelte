@@ -434,7 +434,7 @@
 
 <div class="group">
 	<button
-		class="absolute bg-white top-6 right-6 md:left-6 rounded-lg border border-slate-300 w-8 h-8 grid items-center justify-center"
+		class="absolute top-6 right-6 grid size-8 items-center justify-center rounded-lg border border-slate-300 bg-white md:left-6"
 		aria-label="Home"
 	>
 		<svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20">
@@ -444,26 +444,26 @@
 		</svg>
 	</button>
 	<div
-		class="z-50 h-dvh absolute top-0 w-64 bg-white border-r border-slate-300 -translate-x-64 group-hover:translate-x-0 duration-300 py-4 px-[14px]"
+		class="absolute top-0 z-50 h-dvh w-64 -translate-x-64 border-r border-slate-300 bg-white px-[14px] py-4 duration-300 group-hover:translate-x-0"
 	>
-		<div class="rounded-lg hover:bg-slate-100 cursor-pointer">
+		<div class="cursor-pointer rounded-lg hover:bg-slate-100">
 			<a href="/">
-				<h3 class="font-bold text-xl mx-[10px] pt-2">SimpleBoard</h3>
-				<p class="text-[11px] text-slate-500 font-normal mb-6 mx-[10px] pb-2">Kanban for minimalists</p>
+				<h3 class="mx-[10px] pt-2 text-xl font-bold">SimpleBoard</h3>
+				<p class="mx-[10px] mb-6 pb-2 text-[11px] font-normal text-slate-500">Kanban for minimalists</p>
 			</a>
 		</div>
-		<p class="text-slate-500 mb-2 px-[10px] text-[12px] font-medium">Recent</p>
+		<p class="mb-2 px-[10px] text-[12px] font-medium text-slate-500">Recent</p>
 		{#each menuItems as menuItem}
 			<div
-				class="flex items-center rounded-lg px-[10px] py-[6px] mb-1 group/item"
+				class="group/item mb-1 flex items-center rounded-lg px-[10px] py-[6px]"
 				class:bg-slate-100={menuItem === data.boardId}
 			>
-				<a class="text-sm block w-full group-hover/item:underline align-middle" href={menuItem}>
+				<a class="block w-full align-middle text-sm group-hover/item:underline" href={menuItem}>
 					#{menuItem}
 				</a>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
-					class="hidden group-hover/item:block fill-slate-400 cursor-pointer"
+					class="hidden cursor-pointer fill-slate-400 group-hover/item:block"
 					height="20px"
 					viewBox="0 -960 960 960"
 					width="20px"
@@ -478,24 +478,24 @@
 		{/each}
 	</div>
 </div>
-<div class="max-w-[960px] mx-auto px-4">
+<div class="mx-auto max-w-[960px] px-4">
 	<h1
-		class="inline-block text-slate-950 text-2xl font-bold my-8 hover:underline cursor-pointer"
+		class="my-8 inline-block cursor-pointer text-2xl font-bold text-slate-950 hover:underline"
 		onclick={() => copyToClipboard()}
 		role="none"
 	>
 		#{data.boardId}
 	</h1>
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+	<div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
 		{#each columns as column (column.id)}
 			<div
-				class="md:flex md:flex-col md:min-h-[80vh]"
+				class="md:flex md:min-h-[80vh] md:flex-col"
 				ondrop={(event) => onDrop(event, column.id)}
 				ondragover={(e) => e.preventDefault()}
 				role="none"
 			>
 				<div class="flex">
-					<p class="text-slate-950 font-semibold rounded-t-lg flex-grow">{column.name}</p>
+					<p class="grow rounded-t-lg font-semibold text-slate-950">{column.name}</p>
 					{#if column.id === "todo" && tasks.length > 0}
 						<div class="flex-wrap hover:cursor-pointer" onclick={() => onCreateTaskPressed()} role="none">
 							<svg
@@ -503,7 +503,7 @@
 								height="24"
 								viewBox="0 -960 960 960"
 								width="24"
-								class="fill-amber-950 rounded-md hover:bg-slate-50"
+								class="rounded-md fill-amber-950 hover:bg-slate-50"
 							>
 								<path
 									d="M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z"
@@ -516,7 +516,7 @@
 					{#if column.id === "todo"}
 						<div
 							contenteditable="plaintext-only"
-							class="rounded-lg my-3 box-border cursor-default selected text-slate-700 whitespace-pre-line min-h-4 bg-white p-4 outline-none"
+							class="selected my-3 box-border min-h-4 cursor-default rounded-lg bg-white p-4 whitespace-pre-line text-slate-700 outline-none"
 							class:hidden={!addTask && tasks.length !== 0}
 							onfocusin={() => { addTask = true; activeEditableElement = addTaskInput; }}
 							onfocusout={() => { addTask = false; activeEditableElement = undefined; }}
@@ -536,14 +536,14 @@
 								onblur={() => { task.editable = false; activeEditableElement = undefined; }}
 								oninput={(event) => onEditableInput(event)}
 								onpaste={(event) => onPaste(event)}
-								class="selected box-border cursor-text rounded-lg text-slate-700 my-3 skew-x-0 whitespace-pre-line p-4 min-h-4 outline-none"
+								class="selected my-3 box-border min-h-4 skew-x-0 cursor-text rounded-lg p-4 whitespace-pre-line text-slate-700 outline-none"
 								bind:this={task.instance}
 								bind:innerText={task.title}
 								role="none"
 							></div>
 						{:else}
 							<div
-								class="rounded-lg box-border border border-slate-300 my-3 skew-x-0 cursor-default text-slate-700 whitespace-pre-line min-h-[58px] px-4 pt-4 bg-white"
+								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-lg border border-slate-300 bg-white px-4 pt-4 whitespace-pre-line text-slate-700"
 								draggable="true"
 								onclick={(event) => onTaskClicked(event, task)}
 								ondragstart={(event) => onDrag(event, task)}
