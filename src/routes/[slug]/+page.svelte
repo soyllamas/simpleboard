@@ -636,25 +636,58 @@
 	</h1>
 {/snippet}
 
-{#snippet menuPanelContent()}
-	<a class="mb-6 block rounded-lg px-[10px] py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/">
-		<h3 class="text-xl font-bold text-slate-950 dark:text-slate-50">SimpleBoard</h3>
-		<p class="mt-0.5 text-[11px] font-normal text-slate-500 dark:text-slate-400">Kanban for minimalists</p>
+{#snippet menuPanelContent(isMobile: boolean)}
+	<a
+		class={[
+			"mb-6 block rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800",
+			isMobile ? "px-3 py-3" : "px-[10px] py-2"
+		]}
+		href="/"
+	>
+		<h3
+			class={[
+				"text-slate-950 dark:text-slate-50",
+				isMobile ? "text-2xl font-semibold tracking-tight" : "text-xl font-bold"
+			]}
+		>
+			SimpleBoard
+		</h3>
+		<p
+			class={[
+				"mt-0.5 font-normal text-slate-500 dark:text-slate-400",
+				isMobile ? "text-sm/5" : "text-[11px]"
+			]}
+		>
+			Kanban for minimalists
+		</p>
 	</a>
-	<p class="mb-2 px-[10px] text-[12px] font-medium text-slate-500 dark:text-slate-400">Recent</p>
+	<p
+		class={[
+			"mb-2 font-medium text-slate-500 dark:text-slate-400",
+			isMobile ? "px-3 text-sm/5" : "px-[10px] text-[12px]"
+		]}
+	>
+		Recent
+	</p>
 	{#each menuItems as menuItem (menuItem)}
 		<div
 			class={[
-				"group/item mb-1 flex items-center rounded-lg px-[10px] py-[6px] text-slate-700 dark:text-slate-200",
+				"group/item mb-1 flex items-center text-slate-700 dark:text-slate-200",
+				isMobile ? "gap-2 rounded-xl px-3 py-2 text-base/7" : "rounded-lg px-[10px] py-[6px] text-sm",
 				menuItem === data.boardId && "bg-slate-100 dark:bg-slate-800"
 			]}
 		>
-			<a class="block w-full align-middle text-sm group-hover/item:underline" href={menuItem}>
+			<a class="block w-full align-middle group-hover/item:underline" href={menuItem}>
 				#{menuItem}
 			</a>
 			<button
 				type="button"
-				class="hidden cursor-pointer text-slate-400 group-hover/item:block dark:text-slate-500 dark:hover:text-slate-300"
+				class={[
+					"cursor-pointer text-slate-400 dark:text-slate-500 dark:hover:text-slate-300",
+					isMobile
+						? "relative grid size-10 shrink-0 place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+						: "hidden group-hover/item:block"
+				]}
 				aria-label={`Remove ${menuItem} from recent boards`}
 				onclick={() => removeRecentBoard(menuItem)}
 			>
@@ -722,20 +755,20 @@
 ></button>
 
 <aside
-	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-[14px] pt-4 pb-6 transition-transform duration-300 lg:hidden dark:border-white/10 dark:bg-slate-900 ${menuOpen ? "translate-y-0" : "translate-y-full"}`}
+	class={`fixed inset-x-3 bottom-[calc(--spacing(3)+env(safe-area-inset-bottom))] z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-2xl bg-white px-4 pt-5 pb-6 shadow-2xl ring-1 ring-slate-950/10 transition-transform duration-300 lg:hidden dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${menuOpen ? "translate-y-0" : "translate-y-[calc(100%+--spacing(6)+env(safe-area-inset-bottom))]"}`}
 >
-	{@render menuPanelContent()}
+	{@render menuPanelContent(true)}
 </aside>
 
 <aside
 	class={`fixed inset-y-0 left-0 z-50 hidden h-dvh w-64 overflow-y-auto border-r border-slate-300 bg-white px-[14px] pt-4 pb-4 transition-transform duration-300 lg:block dark:border-white/10 dark:bg-slate-900 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
 	onmouseleave={closeMenuOnDesktop}
 >
-	{@render menuPanelContent()}
+	{@render menuPanelContent(false)}
 </aside>
 
 <aside
-	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-4 pt-4 pb-6 transition-transform duration-300 lg:hidden dark:border-white/10 dark:bg-slate-900 ${settingsOpen ? "translate-y-0" : "translate-y-full"}`}
+	class={`fixed inset-x-3 bottom-[calc(--spacing(3)+env(safe-area-inset-bottom))] z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-2xl bg-white px-4 pt-5 pb-6 shadow-2xl ring-1 ring-slate-950/10 transition-transform duration-300 lg:hidden dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${settingsOpen ? "translate-y-0" : "translate-y-[calc(100%+--spacing(6)+env(safe-area-inset-bottom))]"}`}
 >
 	{@render settingsPanelContent("mobile-expiration", "mobile-theme")}
 </aside>
