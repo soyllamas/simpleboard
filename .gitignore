@@ -112,7 +112,6 @@ tmp
 
 test-results/
 yarn.lock
-package-lock.json
 pnpm-lock.yaml
 /packages/create-svelte/template/CHANGELOG.md
 /packages/package/test/**/package
@@ -129,7 +128,3 @@ symlink-from
 
 serviceAccount.json
 firebaseConfig.json
-
-# Bun lockfiles - commit for reproducible builds
-# bun.lockb is binary format, bun.lock is text format
-# Both should be committed

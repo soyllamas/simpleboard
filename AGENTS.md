@@ -4,7 +4,7 @@
 
 - Always validate your responses are trustworthy.
 - When talking back to me; Keep things short and simple, be concise.
-- This project uses bun as the package manager and runtime. Always use `bun install` instead of `npm install`, and `bun run` instead of `npm run`.
+- This project uses Node.js as the runtime and npm as the package manager. Use `npm install` and `npm run`.
 
 ## Philosophical Beliefs
 
@@ -30,9 +30,9 @@
 ## Stack
 
 - **Framework:** SvelteKit 2 / Svelte 5
-- **Runtime:** Bun (never use npm)
+- **Runtime:** Node.js
 - **Backend:** Firebase (client SDK + Admin SDK)
 - **Styling:** Tailwind CSS 4
 - **Validation:** Valibot
 - **Testing:** Vitest (unit), Playwright (integration)
-- **Adapter:** svelte-adapter-bun
+- **Adapter:** @sveltejs/adapter-node
