@@ -9,6 +9,11 @@
 	import EmojiPicker from "$lib/components/EmojiPicker.svelte";
 	import { detectExactMatch, resolveNodeOffset, type TriggerState } from "$lib/domain/useCase/emoji";
 	import { getTaskUpdatedAtTime, isTaskVisibleToday } from "$lib/domain/useCase/taskVisibility";
+	import ChevronDown from "@lucide/svelte/icons/chevron-down";
+	import Menu from "@lucide/svelte/icons/menu";
+	import Plus from "@lucide/svelte/icons/plus";
+	import Settings2 from "@lucide/svelte/icons/settings-2";
+	import X from "@lucide/svelte/icons/x";
 
 	let unsubscribe: any;
 	let refreshToday: ReturnType<typeof setInterval>;
@@ -27,6 +32,13 @@
 		name: string;
 	};
 
+	type ThemeValue = "system" | "light" | "dark";
+
+	type ThemeOption = {
+		value: ThemeValue;
+		name: string;
+	};
+
 	const expirationOptions: ExpirationOption[] = [
 		{
 			value: "30",
@@ -42,11 +54,30 @@
 		},
 	];
 
+	const themeOptions: ThemeOption[] = [
+		{
+			value: "system",
+			name: "System",
+		},
+		{
+			value: "light",
+			name: "Light",
+		},
+		{
+			value: "dark",
+			name: "Dark",
+		},
+	];
+
+	const themeStorageKey = "theme";
+
 	let { data } = $props();
 	let menuItems = $state<string[]>([]);
 	let currentBoardId = $state<string>();
 	let selectedExpiration = $state<ExpirationValue | undefined>();
+	let selectedTheme = $state<ThemeValue>("system");
 	let expirationSetting = $derived(selectedExpiration ?? parseExpiration(data.expiration));
+	let themeMediaQuery: MediaQueryList | undefined;
 
 	onMount(async () => {
 		nextTaskId = await _generateId();
@@ -69,6 +100,11 @@
 		stored = JSON.stringify($state.snapshot(menuItems));
 		localStorage.setItem("recent", stored);
 
+		selectedTheme = parseTheme(localStorage.getItem(themeStorageKey));
+		themeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+		themeMediaQuery.addEventListener("change", applyTheme);
+		applyTheme();
+
 		refreshToday = setInterval(() => {
 			today = new Date();
 		}, 60_000);
@@ -77,6 +113,7 @@
 	onDestroy(() => {
 		unsubscribe?.();
 		clearInterval(refreshToday);
+		themeMediaQuery?.removeEventListener("change", applyTheme);
 	});
 
 	// svelte-ignore state_referenced_locally
@@ -351,6 +388,22 @@
 		}
 	}
 
+	function onThemeChange(event: Event) {
+		selectedTheme = parseTheme((event.currentTarget as HTMLSelectElement).value);
+		localStorage.setItem(themeStorageKey, selectedTheme);
+		applyTheme();
+	}
+
+	function applyTheme() {
+		if (!browser) return;
+
+		const prefersDark = themeMediaQuery?.matches ?? window.matchMedia("(prefers-color-scheme: dark)").matches;
+		const useDark = selectedTheme === "dark" || (selectedTheme === "system" && prefersDark);
+
+		document.documentElement.classList.toggle("dark", useDark);
+		document.documentElement.style.colorScheme = useDark ? "dark" : "light";
+	}
+
 	function onCreateTaskPressed() {
 		addTask = true;
 		setTimeout(() => {
@@ -526,6 +579,11 @@
 		if (value === "30" || value === "90" || value === "never") return value;
 		return "30";
 	}
+
+	function parseTheme(value: unknown): ThemeValue {
+		if (value === "light" || value === "dark" || value === "system") return value;
+		return "system";
+	}
 </script>
 
 <script:head>
@@ -535,7 +593,7 @@
 {#snippet menuButton(classes: string)}
 	<button
 		type="button"
-		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 ${classes}`}
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5 ${classes}`}
 		aria-label="Open boards menu"
 		aria-expanded={menuOpen}
 		onclick={toggleMenu}
@@ -546,18 +604,14 @@
 			class="absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2 pointer-fine:hidden"
 			aria-hidden="true"
 		></span>
-		<svg xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 -960 960 960" aria-hidden="true">
-			<path
-				d="M180-264q-15.3 0-25.65-10.29Q144-284.58 144-299.79t10.35-25.71Q164.7-336 180-336h600q15.3 0 25.65 10.29Q816-315.42 816-300.21t-10.35 25.71Q795.3-264 780-264H180Zm0-180q-15.3 0-25.65-10.29Q144-464.58 144-479.79t10.35-25.71Q164.7-516 180-516h600q15.3 0 25.65 10.29Q816-495.42 816-480.21t-10.35 25.71Q795.3-444 780-444H180Zm0-180q-15.3 0-25.65-10.29Q144-644.58 144-659.79t10.35-25.71Q164.7-696 180-696h600q15.3 0 25.65 10.29Q816-675.42 816-660.21t-10.35 25.71Q795.3-624 780-624H180Z"
-			/>
-		</svg>
+		<Menu class="size-5" aria-hidden="true" />
 	</button>
 {/snippet}
 
 {#snippet settingsButton(classes: string)}
 	<button
 		type="button"
-		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 ${classes}`}
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5 ${classes}`}
 		aria-label="Board settings"
 		aria-expanded={settingsOpen}
 		onclick={toggleSettings}
@@ -568,27 +622,13 @@
 			class="absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2 pointer-fine:hidden"
 			aria-hidden="true"
 		></span>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="size-5"
-		>
-			<path d="M20 7h-9" />
-			<path d="M14 17H5" />
-			<circle cx="17" cy="17" r="3" />
-			<circle cx="7" cy="7" r="3" />
-		</svg>
+		<Settings2 class="size-5" aria-hidden="true" />
 	</button>
 {/snippet}
 
 {#snippet boardTitle(classes: string)}
 	<h1
-		class={`min-w-0 cursor-pointer truncate text-2xl font-bold text-slate-950 hover:underline ${classes}`}
+		class={`min-w-0 cursor-pointer truncate text-2xl font-bold text-slate-950 hover:underline dark:text-slate-50 ${classes}`}
 		onclick={() => copyToClipboard()}
 		role="none"
 	>
@@ -597,40 +637,37 @@
 {/snippet}
 
 {#snippet menuPanelContent()}
-	<a class="mb-6 block rounded-lg px-[10px] py-2 hover:bg-slate-100" href="/">
-		<h3 class="text-xl font-bold">SimpleBoard</h3>
-		<p class="mt-0.5 text-[11px] font-normal text-slate-500">Kanban for minimalists</p>
+	<a class="mb-6 block rounded-lg px-[10px] py-2 hover:bg-slate-100 dark:hover:bg-slate-800" href="/">
+		<h3 class="text-xl font-bold text-slate-950 dark:text-slate-50">SimpleBoard</h3>
+		<p class="mt-0.5 text-[11px] font-normal text-slate-500 dark:text-slate-400">Kanban for minimalists</p>
 	</a>
-	<p class="mb-2 px-[10px] text-[12px] font-medium text-slate-500">Recent</p>
+	<p class="mb-2 px-[10px] text-[12px] font-medium text-slate-500 dark:text-slate-400">Recent</p>
 	{#each menuItems as menuItem (menuItem)}
 		<div
-			class="group/item mb-1 flex items-center rounded-lg px-[10px] py-[6px]"
-			class:bg-slate-100={menuItem === data.boardId}
+			class={[
+				"group/item mb-1 flex items-center rounded-lg px-[10px] py-[6px] text-slate-700 dark:text-slate-200",
+				menuItem === data.boardId && "bg-slate-100 dark:bg-slate-800"
+			]}
 		>
 			<a class="block w-full align-middle text-sm group-hover/item:underline" href={menuItem}>
 				#{menuItem}
 			</a>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="hidden cursor-pointer fill-slate-400 group-hover/item:block"
-				height="20px"
-				viewBox="0 -960 960 960"
-				width="20px"
+			<button
+				type="button"
+				class="hidden cursor-pointer text-slate-400 group-hover/item:block dark:text-slate-500 dark:hover:text-slate-300"
+				aria-label={`Remove ${menuItem} from recent boards`}
 				onclick={() => removeRecentBoard(menuItem)}
-				role="none"
 			>
-				<path
-					d="M480-429 316-265q-11 11-25 10.5T266-266q-11-11-11-25.5t11-25.5l163-163-164-164q-11-11-10.5-25.5T266-695q11-11 25.5-11t25.5 11l163 164 164-164q11-11 25.5-11t25.5 11q11 11 11 25.5T695-644L531-480l164 164q11 11 11 25t-11 25q-11 11-25.5 11T644-266L480-429Z"
-				/>
-			</svg>
+				<X class="size-5" aria-hidden="true" />
+			</button>
 		</div>
 	{/each}
 {/snippet}
 
-{#snippet settingsPanelContent(expirationId: string)}
-	<h2 class="text-lg/7 font-semibold text-slate-950 sm:text-base/6">Settings</h2>
+{#snippet settingsPanelContent(expirationId: string, themeId: string)}
+	<h2 class="text-lg/7 font-semibold text-slate-950 sm:text-base/6 dark:text-slate-50">Settings</h2>
 	<div class="mt-5">
-		<label for={expirationId} class="text-base/6 font-medium text-slate-950 sm:text-sm/6">
+		<label for={expirationId} class="text-base/6 font-medium text-slate-950 sm:text-sm/6 dark:text-slate-100">
 			Auto-delete after
 		</label>
 		<div class="mt-2 inline-grid w-full grid-cols-[1fr_--spacing(8)]">
@@ -639,21 +676,32 @@
 				name="expiration"
 				value={expirationSetting}
 				onchange={(event) => onExpirationChange(event)}
-				class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6"
+				class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5"
 			>
 				{#each expirationOptions as option (option.value)}
 					<option value={option.value}>{option.name}</option>
 				{/each}
 			</select>
-			<svg
-				viewBox="0 0 8 5"
-				width="8"
-				height="5"
-				fill="none"
-				class="pointer-events-none col-start-2 row-start-1 place-self-center"
+			<ChevronDown class="pointer-events-none col-start-2 row-start-1 size-4 place-self-center text-slate-700 dark:text-slate-300" aria-hidden="true" />
+		</div>
+	</div>
+	<div class="mt-5">
+		<label for={themeId} class="text-base/6 font-medium text-slate-950 sm:text-sm/6 dark:text-slate-100">
+			Theme
+		</label>
+		<div class="mt-2 inline-grid w-full grid-cols-[1fr_--spacing(8)]">
+			<select
+				id={themeId}
+				name="theme"
+				value={selectedTheme}
+				onchange={(event) => onThemeChange(event)}
+				class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5"
 			>
-				<path d="M.5.5 4 4 7.5.5" stroke="currentcolor" />
-			</svg>
+				{#each themeOptions as option (option.value)}
+					<option value={option.value}>{option.name}</option>
+				{/each}
+			</select>
+			<ChevronDown class="pointer-events-none col-start-2 row-start-1 size-4 place-self-center text-slate-700 dark:text-slate-300" aria-hidden="true" />
 		</div>
 	</div>
 {/snippet}
@@ -668,35 +716,35 @@
 
 <button
 	type="button"
-	class={`fixed inset-0 z-40 bg-slate-950/10 transition-opacity duration-300 lg:hidden ${menuOpen || settingsOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+	class={`fixed inset-0 z-40 bg-slate-950/10 transition-opacity duration-300 lg:hidden dark:bg-slate-950/60 ${menuOpen || settingsOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
 	aria-label="Close panel"
 	onclick={closePanels}
 ></button>
 
 <aside
-	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-[14px] pt-4 pb-6 transition-transform duration-300 lg:hidden ${menuOpen ? "translate-y-0" : "translate-y-full"}`}
+	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-[14px] pt-4 pb-6 transition-transform duration-300 lg:hidden dark:border-white/10 dark:bg-slate-900 ${menuOpen ? "translate-y-0" : "translate-y-full"}`}
 >
 	{@render menuPanelContent()}
 </aside>
 
 <aside
-	class={`fixed inset-y-0 left-0 z-50 hidden h-dvh w-64 overflow-y-auto border-r border-slate-300 bg-white px-[14px] pt-4 pb-4 transition-transform duration-300 lg:block ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
+	class={`fixed inset-y-0 left-0 z-50 hidden h-dvh w-64 overflow-y-auto border-r border-slate-300 bg-white px-[14px] pt-4 pb-4 transition-transform duration-300 lg:block dark:border-white/10 dark:bg-slate-900 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
 	onmouseleave={closeMenuOnDesktop}
 >
 	{@render menuPanelContent()}
 </aside>
 
 <aside
-	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-4 pt-4 pb-6 transition-transform duration-300 lg:hidden ${settingsOpen ? "translate-y-0" : "translate-y-full"}`}
+	class={`fixed inset-x-0 bottom-0 z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-slate-300 bg-white px-4 pt-4 pb-6 transition-transform duration-300 lg:hidden dark:border-white/10 dark:bg-slate-900 ${settingsOpen ? "translate-y-0" : "translate-y-full"}`}
 >
-	{@render settingsPanelContent("mobile-expiration")}
+	{@render settingsPanelContent("mobile-expiration", "mobile-theme")}
 </aside>
 
 <aside
-	class={`fixed inset-y-0 right-0 z-50 hidden h-dvh w-72 overflow-y-auto border-l border-slate-300 bg-white px-4 pt-4 pb-4 transition-transform duration-300 lg:block ${settingsOpen ? "translate-x-0" : "translate-x-full"}`}
+	class={`fixed inset-y-0 right-0 z-50 hidden h-dvh w-72 overflow-y-auto border-l border-slate-300 bg-white px-4 pt-4 pb-4 transition-transform duration-300 lg:block dark:border-white/10 dark:bg-slate-900 ${settingsOpen ? "translate-x-0" : "translate-x-full"}`}
 	onmouseleave={closeSettingsOnDesktop}
 >
-	{@render settingsPanelContent("desktop-expiration")}
+	{@render settingsPanelContent("desktop-expiration", "desktop-theme")}
 </aside>
 
 <div class="mx-auto max-w-[960px] px-4">
@@ -709,28 +757,23 @@
 				role="none"
 			>
 				<div class="flex">
-					<p class="grow rounded-t-lg font-semibold text-slate-950">{column.name}</p>
+					<p class="grow rounded-t-lg font-semibold text-slate-950 dark:text-slate-50">{column.name}</p>
 					{#if column.id === "todo" && tasks.length > 0}
-						<div class="flex-wrap hover:cursor-pointer" onclick={() => onCreateTaskPressed()} role="none">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								height="24"
-								viewBox="0 -960 960 960"
-								width="24"
-								class="rounded-md fill-amber-950 hover:bg-slate-50"
-							>
-								<path
-									d="M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z"
-								/>
-							</svg>
-						</div>
+						<button
+							type="button"
+							class="rounded-md text-slate-950 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
+							aria-label="Add task"
+							onclick={() => onCreateTaskPressed()}
+						>
+							<Plus class="size-6" aria-hidden="true" />
+						</button>
 					{/if}
 				</div>
 				<div>
 					{#if column.id === "todo"}
 						<div
 							contenteditable="plaintext-only"
-							class="selected my-3 box-border min-h-4 cursor-default rounded-lg bg-white p-4 whitespace-pre-line text-slate-700 outline-none"
+							class="selected my-3 box-border min-h-4 cursor-default rounded-lg bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
 							class:hidden={!addTask && tasks.length !== 0}
 							onfocusin={() => { addTask = true; activeEditableElement = addTaskInput; }}
 							onfocusout={() => { addTask = false; activeEditableElement = undefined; }}
@@ -750,14 +793,14 @@
 								onblur={() => { task.editable = false; activeEditableElement = undefined; }}
 								oninput={(event) => onEditableInput(event)}
 								onpaste={(event) => onPaste(event)}
-								class="selected my-3 box-border min-h-4 skew-x-0 cursor-text rounded-lg p-4 whitespace-pre-line text-slate-700 outline-none"
+								class="selected my-3 box-border min-h-4 skew-x-0 cursor-text rounded-lg bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
 								bind:this={task.instance}
 								bind:innerText={task.title}
 								role="none"
 							></div>
 						{:else}
 							<div
-								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-lg border border-slate-300 bg-white px-4 pt-4 whitespace-pre-line text-slate-700"
+								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-lg border border-slate-300 bg-white px-4 pt-4 whitespace-pre-line text-slate-700 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5"
 								draggable="true"
 								onclick={(event) => onTaskClicked(event, task)}
 								ondragstart={(event) => onDrag(event, task)}
@@ -811,5 +854,18 @@
 	:global(article a) {
 		color: rgb(37 99 235);
 		text-decoration: underline;
+	}
+
+	:global(html.dark) .selected {
+		border-color: rgb(59 130 246);
+	}
+
+	:global(html.dark article code) {
+		background-color: rgb(15 23 42);
+		color: rgb(226 232 240);
+	}
+
+	:global(html.dark article a) {
+		color: rgb(96 165 250);
 	}
 </style>

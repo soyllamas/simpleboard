@@ -138,7 +138,7 @@
 	popover="manual"
 	role="listbox"
 	aria-label="Emoji picker"
-	class="fixed z-50 m-0 max-h-64 w-64 overflow-y-auto rounded-lg border border-slate-300 bg-white py-1 shadow-lg"
+	class="fixed z-50 m-0 max-h-64 w-64 overflow-y-auto rounded-lg border border-slate-300 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-slate-900 dark:shadow-none dark:inset-ring dark:inset-ring-white/5"
 	style="top: {top}px; left: {left}px;"
 >
 	{#each results as entry, i (entry.shortcode)}
@@ -146,15 +146,17 @@
 			role="option"
 			id="emoji-opt-{i}"
 			aria-selected={i === selectedIndex}
-			class="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-sm"
-			class:bg-slate-100={i === selectedIndex}
+			class={[
+				"flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-sm text-slate-950 dark:text-slate-100",
+				i === selectedIndex && "bg-slate-100 dark:bg-slate-800"
+			]}
 			onmousedown={(e) => {
 				e.preventDefault();
 				select(entry);
 			}}
 		>
 			<span class="text-lg">{entry.emoji}</span>
-			<span class="text-slate-600">:{entry.shortcode}:</span>
+			<span class="text-slate-600 dark:text-slate-400">:{entry.shortcode}:</span>
 		</button>
 	{/each}
 </div>
@@ -163,5 +165,10 @@
 	::highlight(emoji-query) {
 		background-color: rgb(219 234 254);
 		color: rgb(37 99 235);
+	}
+
+	:global(html.dark) ::highlight(emoji-query) {
+		background-color: rgb(30 64 175);
+		color: rgb(219 234 254);
 	}
 </style>

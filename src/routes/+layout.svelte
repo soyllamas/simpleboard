@@ -5,9 +5,3 @@
 </script>
 
 {@render children()}
-
-<style>
-	:global(body) {
-		background-color: #fff;
-	}
-</style>

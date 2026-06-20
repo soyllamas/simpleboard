@@ -1,10 +1,24 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
 	overflow-x: clip;
 	overflow-y: auto;
+	color-scheme: light;
+}
+
+html.dark {
+	color-scheme: dark;
 }
 
 body {
 	overflow-x: clip;
+	background-color: rgb(255 255 255);
+	color: rgb(15 23 42);
+}
+
+html.dark body {
+	background-color: rgb(2 6 23);
+	color: rgb(226 232 240);
 }
