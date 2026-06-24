@@ -5,6 +5,7 @@
 - Always validate your responses are trustworthy.
 - When talking back to me; Keep things short and simple, be concise.
 - This project uses Node.js as the runtime and npm as the package manager. Use `npm install` and `npm run`.
+- Check if the application is already running and use that before spinning up another server.
 
 ## Philosophical Beliefs
 
