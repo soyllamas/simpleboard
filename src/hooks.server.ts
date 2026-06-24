@@ -18,6 +18,20 @@ const evlogHooks = createEvlogHooks({
     redact: true,
 });
 
+const securityHeaders: Handle = async ({event, resolve}) => {
+    const response = await resolve(event);
+
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set(
+        "Permissions-Policy",
+        "camera=(), geolocation=(), microphone=(), payment=(), usb=()"
+    );
+
+    return response;
+};
+
 const sanitizePath: Handle = async ({event, resolve}) => {
     const slug = event.url.pathname;
     const isRoot = slug === "/";
@@ -34,7 +48,7 @@ const sanitizePath: Handle = async ({event, resolve}) => {
     return resolve(event);
 };
 
-export const handle = sequence(evlogHooks.handle as Handle, sanitizePath);
+export const handle = sequence(evlogHooks.handle as Handle, sanitizePath, securityHeaders);
 
 export const handleError: HandleServerError = async (input) => {
     const errorId = crypto.randomUUID();
