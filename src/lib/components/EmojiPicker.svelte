@@ -138,7 +138,7 @@
 	popover="manual"
 	role="listbox"
 	aria-label="Emoji picker"
-	class="fixed z-50 m-0 max-h-64 w-64 overflow-y-auto rounded-2xl bg-white py-1 shadow-lg ring-1 ring-slate-950/10 dark:bg-slate-900 dark:shadow-none dark:ring-white/10"
+	class="fixed z-50 m-0 max-h-64 w-64 overflow-y-auto rounded-2xl bg-white py-1 shadow-[0_8px_30px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/10 dark:bg-slate-900 dark:shadow-none dark:ring-white/10"
 	style="top: {top}px; left: {left}px;"
 >
 	{#each results as entry, i (entry.shortcode)}
@@ -147,7 +147,7 @@
 			id="emoji-opt-{i}"
 			aria-selected={i === selectedIndex}
 			class={[
-				"flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-sm text-slate-950 dark:text-slate-100",
+				"flex min-h-10 w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-sm text-slate-950 transition-colors duration-200 dark:text-slate-100",
 				i === selectedIndex && "bg-slate-100 dark:bg-slate-800"
 			]}
 			onmousedown={(e) => {
