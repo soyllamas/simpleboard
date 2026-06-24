@@ -2,12 +2,6 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-ARG FIREBASE_SERVICE_ACCOUNT
-ARG PUBLIC_FIREBASE_CONFIG
-
-ENV FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
-ENV PUBLIC_FIREBASE_CONFIG=${PUBLIC_FIREBASE_CONFIG}
-
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -21,9 +15,12 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts
 
-COPY --from=builder /app/build ./build
+COPY --from=builder --chown=node:node /app/build ./build
+
+ENV NODE_ENV=production
+
+USER node
 
 EXPOSE 3000
-ENV NODE_ENV=production
 
 CMD ["node", "build"]

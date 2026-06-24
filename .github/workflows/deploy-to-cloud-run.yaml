@@ -25,8 +25,6 @@ jobs:
       - name: ⚙️ Build Docker image
         run: |
           docker build \
-            --build-arg FIREBASE_SERVICE_ACCOUNT="${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" \
-            --build-arg PUBLIC_FIREBASE_CONFIG="${{ secrets.FIREBASE_CONFIG }}" \
             -t gcr.io/simpleboards-app/simpleboard:${{ github.sha }} .
 
       - name: ⬆️ Upload Docker image to Google Artifact Registry
@@ -40,7 +38,8 @@ jobs:
             --region=us-central1 \
             --allow-unauthenticated \
             --set-env-vars=FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }} \
-            --set-env-vars=PUBLIC_FIREBASE_CONFIG=${{ secrets.FIREBASE_CONFIG }}
+            --set-env-vars=PUBLIC_FIREBASE_CONFIG=${{ secrets.FIREBASE_CONFIG }} \
+            --set-env-vars=PUBLIC_FIREBASE_APP_CHECK_SITE_KEY=${{ secrets.FIREBASE_APP_CHECK_SITE_KEY }}
 
       - name: ✅ Success
         run: |
