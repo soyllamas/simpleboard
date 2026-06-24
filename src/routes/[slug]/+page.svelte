@@ -74,14 +74,6 @@
 			name: "Dark",
 		},
 	];
-
-	const themeStorageKey = "theme";
-	const scaffoldColors = {
-		light: "#ffffff",
-		dark: "#020617",
-		barrier: "#e7e9ec",
-	};
-
 	let { data } = $props();
 	let menuItems = $state<string[]>([]);
 	let currentBoardId = $state<string>();
@@ -113,7 +105,6 @@
 		stored = JSON.stringify($state.snapshot(menuItems));
 		localStorage.setItem("recent", stored);
 
-		selectedTheme = parseTheme(localStorage.getItem(themeStorageKey));
 		themeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 		themeMediaQuery.addEventListener("change", applyTheme);
 		applyTheme();
@@ -157,11 +148,6 @@
 	let activeEditableElement = $state<HTMLElement | undefined>();
 	let menuOpen = $state(false);
 	let settingsOpen = $state(false);
-	let panelsOpen = $derived(menuOpen || settingsOpen);
-
-	$effect(() => {
-		updateScaffoldColor(isDarkThemeActive(), panelsOpen);
-	});
 
 	const columns = $derived([
 		{
@@ -408,43 +394,12 @@
 		}
 	}
 
-	function onThemeChange(event: Event) {
-		selectedTheme = parseTheme((event.currentTarget as HTMLSelectElement).value);
-		localStorage.setItem(themeStorageKey, selectedTheme);
-		applyTheme();
-	}
-
 	function applyTheme() {
 		if (!browser) return;
 
-		const useDark = isDarkThemeActive();
+		const useDark = themeMediaQuery?.matches ?? window.matchMedia("(prefers-color-scheme: dark)").matches;
 
 		document.documentElement.classList.toggle("dark", useDark);
-		updateScaffoldColor(useDark, panelsOpen);
-	}
-
-	function isDarkThemeActive() {
-		if (!browser) return false;
-
-		const prefersDark = themeMediaQuery?.matches ?? window.matchMedia("(prefers-color-scheme: dark)").matches;
-		return selectedTheme === "dark" || (selectedTheme === "system" && prefersDark);
-	}
-
-	function updateScaffoldColor(useDark: boolean, useBarrier: boolean) {
-		if (!browser) return;
-
-		const meta = getThemeColorMeta();
-		meta.content = useBarrier && !useDark ? scaffoldColors.barrier : useDark ? scaffoldColors.dark : scaffoldColors.light;
-	}
-
-	function getThemeColorMeta() {
-		const existing = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-		if (existing) return existing;
-
-		const meta = document.createElement("meta");
-		meta.name = "theme-color";
-		document.head.append(meta);
-		return meta;
 	}
 
 	function onCreateTaskPressed() {
@@ -628,10 +583,6 @@
 		return "30";
 	}
 
-	function parseTheme(value: unknown): ThemeValue {
-		if (value === "light" || value === "dark" || value === "system") return value;
-		return "system";
-	}
 </script>
 
 <script:head>
@@ -775,8 +726,8 @@
 				id={themeId}
 				name="theme"
 				value={selectedTheme}
-				onchange={(event) => onThemeChange(event)}
-				class="col-span-full row-start-1 min-h-10 appearance-none rounded-xl bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 ring-1 ring-slate-950/10 transition-shadow duration-200 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
+				disabled
+				class="col-span-full row-start-1 min-h-10 appearance-none rounded-xl bg-slate-50 py-2 pr-8 pl-3 text-base/7 text-slate-500 ring-1 ring-slate-950/10 sm:text-sm/6 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10"
 			>
 				{#each themeOptions as option (option.value)}
 					<option value={option.value}>{option.name}</option>
@@ -797,10 +748,7 @@
 
 <button
 	type="button"
-	class={[
-		"fixed inset-0 z-40 transition-[background-color,opacity] duration-300 lg:hidden",
-		panelsOpen ? "bg-slate-950/10 opacity-100 dark:bg-slate-950/60" : "pointer-events-none bg-transparent opacity-0"
-	]}
+	class={`fixed inset-0 z-40 bg-slate-950/10 transition-opacity duration-300 lg:hidden dark:bg-slate-950/60 ${menuOpen || settingsOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
 	aria-label="Close panel"
 	onclick={closePanels}
 ></button>

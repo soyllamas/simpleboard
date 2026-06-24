@@ -2,19 +2,10 @@
 <html lang="en" class="antialiased">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="theme-color" content="#ffffff" />
 		<script nonce="%sveltekit.nonce%">
 			try {
-				const scaffoldColors = {
-					light: '#ffffff',
-					dark: '#020617'
-				};
-				const theme = localStorage.getItem('theme') || 'system';
 				const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
-				const useDark = theme === 'dark' || (theme === 'system' && prefersDark);
-				document.documentElement.classList.toggle('dark', useDark);
-
-				document.querySelector('meta[name="theme-color"]').content = useDark ? scaffoldColors.dark : scaffoldColors.light;
+				document.documentElement.classList.toggle('dark', prefersDark);
 			} catch {}
 		</script>
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
