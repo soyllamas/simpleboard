@@ -4,6 +4,7 @@
 	import Markdoc from "@markdoc/markdoc";
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
 	import equal from "fast-deep-equal";
 	import { createTask, updateTask, deleteTask, reorderTasks, updateExpiration } from "./board.remote";
 	import EmojiPicker from "$lib/components/EmojiPicker.svelte";
@@ -447,7 +448,7 @@
 		let boardIds = (JSON.parse(stored) ?? []) as string[];
 		boardIds = boardIds.filter((boardId) => boardId != id);
 		menuItems = boardIds;
-		if (id === data.boardId && menuItems.length > 0) goto(menuItems[0]);
+		if (id === data.boardId && menuItems.length > 0) goto(resolve(`/${menuItems[0]}`));
 		stored = JSON.stringify(boardIds);
 		localStorage.setItem("recent", stored);
 	}
@@ -593,7 +594,7 @@
 {#snippet menuButton(classes: string)}
 	<button
 		type="button"
-		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5 ${classes}`}
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-950 ring-1 ring-slate-950/10 lg:size-8 lg:rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10 ${classes}`}
 		aria-label="Open boards menu"
 		aria-expanded={menuOpen}
 		onclick={toggleMenu}
@@ -611,7 +612,7 @@
 {#snippet settingsButton(classes: string)}
 	<button
 		type="button"
-		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-950 lg:size-8 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5 ${classes}`}
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-950 ring-1 ring-slate-950/10 lg:size-8 lg:rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10 ${classes}`}
 		aria-label="Board settings"
 		aria-expanded={settingsOpen}
 		onclick={toggleSettings}
@@ -628,7 +629,7 @@
 
 {#snippet boardTitle(classes: string)}
 	<h1
-		class={`min-w-0 cursor-pointer truncate text-2xl font-bold text-slate-950 hover:underline dark:text-slate-50 ${classes}`}
+		class={`min-w-0 cursor-pointer truncate text-2xl font-semibold tracking-tight text-slate-950 hover:underline dark:text-slate-50 ${classes}`}
 		onclick={() => copyToClipboard()}
 		role="none"
 	>
@@ -639,15 +640,15 @@
 {#snippet menuPanelContent(isMobile: boolean)}
 	<a
 		class={[
-			"mb-6 block rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800",
+			"mb-6 block rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800",
 			isMobile ? "px-3 py-3" : "px-[10px] py-2"
 		]}
-		href="/"
+		href={resolve("/")}
 	>
 		<h3
 			class={[
 				"text-slate-950 dark:text-slate-50",
-				isMobile ? "text-2xl font-semibold tracking-tight" : "text-xl font-bold"
+				isMobile ? "text-2xl font-semibold tracking-tight" : "text-xl font-semibold"
 			]}
 		>
 			SimpleBoard
@@ -673,11 +674,11 @@
 		<div
 			class={[
 				"group/item mb-1 flex items-center text-slate-700 dark:text-slate-200",
-				isMobile ? "gap-2 rounded-xl px-3 py-2 text-base/7" : "rounded-lg px-[10px] py-[6px] text-sm",
+				isMobile ? "gap-2 rounded-2xl px-3 py-2 text-base/7" : "rounded-xl px-[10px] py-[6px] text-sm",
 				menuItem === data.boardId && "bg-slate-100 dark:bg-slate-800"
 			]}
 		>
-			<a class="block w-full align-middle group-hover/item:underline" href={menuItem}>
+			<a class="block w-full align-middle group-hover/item:underline" href={resolve(`/${menuItem}`)}>
 				#{menuItem}
 			</a>
 			<button
@@ -685,7 +686,7 @@
 				class={[
 					"cursor-pointer text-slate-400 dark:text-slate-500 dark:hover:text-slate-300",
 					isMobile
-						? "relative grid size-10 shrink-0 place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+						? "relative grid size-10 shrink-0 place-items-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
 						: "hidden group-hover/item:block"
 				]}
 				aria-label={`Remove ${menuItem} from recent boards`}
@@ -709,7 +710,7 @@
 				name="expiration"
 				value={expirationSetting}
 				onchange={(event) => onExpirationChange(event)}
-				class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5"
+				class="col-span-full row-start-1 appearance-none rounded-xl bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 ring-1 ring-slate-950/10 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
 			>
 				{#each expirationOptions as option (option.value)}
 					<option value={option.value}>{option.name}</option>
@@ -728,7 +729,7 @@
 				name="theme"
 				value={selectedTheme}
 				onchange={(event) => onThemeChange(event)}
-				class="col-span-full row-start-1 appearance-none rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5"
+				class="col-span-full row-start-1 appearance-none rounded-xl bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 ring-1 ring-slate-950/10 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
 			>
 				{#each themeOptions as option (option.value)}
 					<option value={option.value}>{option.name}</option>
@@ -755,7 +756,7 @@
 ></button>
 
 <aside
-	class={`fixed inset-x-3 bottom-[calc(--spacing(3)+env(safe-area-inset-bottom))] z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-2xl bg-white px-4 pt-5 pb-6 shadow-2xl ring-1 ring-slate-950/10 transition-transform duration-300 lg:hidden dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${menuOpen ? "translate-y-0" : "translate-y-[calc(100%+--spacing(6)+env(safe-area-inset-bottom))]"}`}
+	class={`fixed inset-x-3 bottom-[calc(--spacing(3)+env(safe-area-inset-bottom))] z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-[1.75rem] bg-white px-4 pt-5 pb-6 shadow-2xl ring-1 ring-slate-950/10 transition-transform duration-300 lg:hidden dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${menuOpen ? "translate-y-0" : "translate-y-[calc(100%+--spacing(6)+env(safe-area-inset-bottom))]"}`}
 >
 	{@render menuPanelContent(true)}
 </aside>
@@ -768,7 +769,7 @@
 </aside>
 
 <aside
-	class={`fixed inset-x-3 bottom-[calc(--spacing(3)+env(safe-area-inset-bottom))] z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-2xl bg-white px-4 pt-5 pb-6 shadow-2xl ring-1 ring-slate-950/10 transition-transform duration-300 lg:hidden dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${settingsOpen ? "translate-y-0" : "translate-y-[calc(100%+--spacing(6)+env(safe-area-inset-bottom))]"}`}
+	class={`fixed inset-x-3 bottom-[calc(--spacing(3)+env(safe-area-inset-bottom))] z-50 min-h-[45dvh] max-h-[85dvh] overflow-y-auto rounded-[1.75rem] bg-white px-4 pt-5 pb-6 shadow-2xl ring-1 ring-slate-950/10 transition-transform duration-300 lg:hidden dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${settingsOpen ? "translate-y-0" : "translate-y-[calc(100%+--spacing(6)+env(safe-area-inset-bottom))]"}`}
 >
 	{@render settingsPanelContent("mobile-expiration", "mobile-theme")}
 </aside>
@@ -794,7 +795,7 @@
 					{#if column.id === "todo" && tasks.length > 0}
 						<button
 							type="button"
-							class="rounded-md text-slate-950 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
+							class="rounded-lg text-slate-950 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
 							aria-label="Add task"
 							onclick={() => onCreateTaskPressed()}
 						>
@@ -806,7 +807,7 @@
 					{#if column.id === "todo"}
 						<div
 							contenteditable="plaintext-only"
-							class="selected my-3 box-border min-h-4 cursor-default rounded-lg bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
+							class="selected my-3 box-border min-h-4 cursor-default rounded-2xl bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
 							class:hidden={!addTask && tasks.length !== 0}
 							onfocusin={() => { addTask = true; activeEditableElement = addTaskInput; }}
 							onfocusout={() => { addTask = false; activeEditableElement = undefined; }}
@@ -826,14 +827,14 @@
 								onblur={() => { task.editable = false; activeEditableElement = undefined; }}
 								oninput={(event) => onEditableInput(event)}
 								onpaste={(event) => onPaste(event)}
-								class="selected my-3 box-border min-h-4 skew-x-0 cursor-text rounded-lg bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
+								class="selected my-3 box-border min-h-4 skew-x-0 cursor-text rounded-2xl bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
 								bind:this={task.instance}
 								bind:innerText={task.title}
 								role="none"
 							></div>
 						{:else}
 							<div
-								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-lg border border-slate-300 bg-white px-4 pt-4 whitespace-pre-line text-slate-700 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:inset-ring dark:inset-ring-white/5"
+								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-2xl bg-white p-4 whitespace-pre-line text-slate-700 ring-1 ring-slate-950/10 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
 								draggable="true"
 								onclick={(event) => onTaskClicked(event, task)}
 								ondragstart={(event) => onDrag(event, task)}
@@ -861,6 +862,10 @@
 	:global(article > *) {
 		margin-bottom: 1rem;
 		overflow-wrap: break-word;
+	}
+
+	:global(article > :last-child) {
+		margin-bottom: 0;
 	}
 
 	:global(article code) {

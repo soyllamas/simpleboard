@@ -138,7 +138,7 @@
 	popover="manual"
 	role="listbox"
 	aria-label="Emoji picker"
-	class="fixed z-50 m-0 max-h-64 w-64 overflow-y-auto rounded-lg border border-slate-300 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-slate-900 dark:shadow-none dark:inset-ring dark:inset-ring-white/5"
+	class="fixed z-50 m-0 max-h-64 w-64 overflow-y-auto rounded-2xl bg-white py-1 shadow-lg ring-1 ring-slate-950/10 dark:bg-slate-900 dark:shadow-none dark:ring-white/10"
 	style="top: {top}px; left: {left}px;"
 >
 	{#each results as entry, i (entry.shortcode)}
