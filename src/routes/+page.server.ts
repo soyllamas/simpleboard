@@ -1,6 +1,10 @@
 import type {PageServerLoad} from "./$types";
 
-export const load: PageServerLoad = async ({url}) => {
+export const load: PageServerLoad = async ({ setHeaders, url }) => {
+    setHeaders({
+        'cache-control': 'no-store'
+    });
+
     const domain = url.host
     return {
         boardId: generateRandomId(),
