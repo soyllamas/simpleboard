@@ -1,0 +1,11 @@
+[features]
+hooks = true
+
+[[hooks.PreToolUse]]
+matcher = ".*"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "python3 /Users/soyllamas/Documents/@soyllamas/simpleboard/.codex/hooks/protect_env_files.py"
+timeout = 5
+statusMessage = "Checking .env access"

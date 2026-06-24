@@ -10,6 +10,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "posthog:sourcemaps": "posthog-cli sourcemap inject --directory build && posthog-cli sourcemap upload --directory build --delete-after",
+    "secrets:github": "bash scripts/env-to-github-secrets.sh",
     "test:integration": "playwright test",
     "test:unit": "vitest"
   },
