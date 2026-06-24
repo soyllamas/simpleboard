@@ -834,7 +834,7 @@
 							></div>
 						{:else}
 							<div
-								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-2xl bg-white p-4 whitespace-pre-line text-slate-700 ring-1 ring-slate-950/10 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
+								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-2xl border-2 border-transparent bg-white p-[15px] whitespace-pre-line text-slate-700 ring-1 ring-slate-950/10 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
 								draggable="true"
 								onclick={(event) => onTaskClicked(event, task)}
 								ondragstart={(event) => onDrag(event, task)}
