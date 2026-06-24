@@ -781,8 +781,8 @@
 	{@render settingsPanelContent("desktop-expiration", "desktop-theme")}
 </aside>
 
-<div class="mx-auto max-w-[960px] px-4">
-	<div class="mt-8 mb-8 grid grid-cols-1 gap-6 md:grid-cols-3 lg:mt-0">
+<div class="mx-auto max-w-[960px] px-4 pb-[var(--mobile-browser-bottom-space)] lg:pb-8">
+	<div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3 lg:mt-0">
 		{#each columns as column (column.id)}
 			<div
 				class="md:flex md:min-h-[80vh] md:flex-col"

@@ -2,6 +2,10 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+	--mobile-browser-bottom-space: calc(6rem + env(safe-area-inset-bottom));
+}
+
 html {
 	overflow-x: clip;
 	overflow-y: auto;
