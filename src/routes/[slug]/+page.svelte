@@ -887,7 +887,7 @@
 		padding-right: 0.25rem;
 		padding-top: 0.125rem;
 		padding-bottom: 0.125rem;
-		border-radius: 0.25rem;
+		border-radius: 0.375rem;
 		font-size: 0.875rem;
 		line-height: 1.25rem;
 	}
