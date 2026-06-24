@@ -76,6 +76,11 @@
 	];
 
 	const themeStorageKey = "theme";
+	const scaffoldColors = {
+		light: "#ffffff",
+		dark: "#020617",
+		barrier: "#e7e9ec",
+	};
 
 	let { data } = $props();
 	let menuItems = $state<string[]>([]);
@@ -152,6 +157,11 @@
 	let activeEditableElement = $state<HTMLElement | undefined>();
 	let menuOpen = $state(false);
 	let settingsOpen = $state(false);
+	let panelsOpen = $derived(menuOpen || settingsOpen);
+
+	$effect(() => {
+		updateScaffoldColor(isDarkThemeActive(), panelsOpen);
+	});
 
 	const columns = $derived([
 		{
@@ -407,10 +417,34 @@
 	function applyTheme() {
 		if (!browser) return;
 
-		const prefersDark = themeMediaQuery?.matches ?? window.matchMedia("(prefers-color-scheme: dark)").matches;
-		const useDark = selectedTheme === "dark" || (selectedTheme === "system" && prefersDark);
+		const useDark = isDarkThemeActive();
 
 		document.documentElement.classList.toggle("dark", useDark);
+		updateScaffoldColor(useDark, panelsOpen);
+	}
+
+	function isDarkThemeActive() {
+		if (!browser) return false;
+
+		const prefersDark = themeMediaQuery?.matches ?? window.matchMedia("(prefers-color-scheme: dark)").matches;
+		return selectedTheme === "dark" || (selectedTheme === "system" && prefersDark);
+	}
+
+	function updateScaffoldColor(useDark: boolean, useBarrier: boolean) {
+		if (!browser) return;
+
+		const meta = getThemeColorMeta();
+		meta.content = useBarrier && !useDark ? scaffoldColors.barrier : useDark ? scaffoldColors.dark : scaffoldColors.light;
+	}
+
+	function getThemeColorMeta() {
+		const existing = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+		if (existing) return existing;
+
+		const meta = document.createElement("meta");
+		meta.name = "theme-color";
+		document.head.append(meta);
+		return meta;
 	}
 
 	function onCreateTaskPressed() {
@@ -763,7 +797,10 @@
 
 <button
 	type="button"
-	class={`fixed inset-0 z-40 bg-slate-950/10 transition-opacity duration-300 lg:hidden dark:bg-slate-950/60 ${menuOpen || settingsOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+	class={[
+		"fixed inset-0 z-40 transition-[background-color,opacity] duration-300 lg:hidden",
+		panelsOpen ? "bg-slate-950/10 opacity-100 dark:bg-slate-950/60" : "pointer-events-none bg-transparent opacity-0"
+	]}
 	aria-label="Close panel"
 	onclick={closePanels}
 ></button>
