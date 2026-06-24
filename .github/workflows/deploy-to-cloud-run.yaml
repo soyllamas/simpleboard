@@ -37,7 +37,7 @@ jobs:
             --platform=managed \
             --region=us-central1 \
             --allow-unauthenticated \
-            --set-env-vars='^|^FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}|PUBLIC_FIREBASE_CONFIG=${{ secrets.FIREBASE_CONFIG }}|PUBLIC_FIREBASE_APP_CHECK_SITE_KEY=${{ secrets.FIREBASE_APP_CHECK_SITE_KEY }}'
+            --set-env-vars='^|^FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}|PUBLIC_FIREBASE_CONFIG=${{ secrets.FIREBASE_CONFIG }}|PUBLIC_FIREBASE_APP_CHECK_SITE_KEY=${{ secrets.FIREBASE_APP_CHECK_SITE_KEY }}|PUBLIC_POSTHOG_PROJECT_TOKEN=${{ secrets.PUBLIC_POSTHOG_PROJECT_TOKEN }}|PUBLIC_POSTHOG_HOST=${{ secrets.PUBLIC_POSTHOG_HOST }}|POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}|POSTHOG_HOST=${{ secrets.POSTHOG_HOST }}|POSTHOG_CSP_VERSION=${{ secrets.POSTHOG_CSP_VERSION }}'
 
       - name: ✅ Success
         run: |
