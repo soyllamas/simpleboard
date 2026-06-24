@@ -3,6 +3,7 @@
 	import { boardIdMaxLength } from "$lib/domain/useCase/boardLimits";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
+	import Info from "@lucide/svelte/icons/info";
 
 	let { data } = $props();
 
@@ -62,7 +63,8 @@
 			<li>Ephemeral boards.</li>
 			<li>Markdown support.</li>
 		</ul>
-		<footer class="mt-16 pb-8 text-center text-xs/5 text-slate-500 dark:text-slate-400">
-			Boards are unlisted and accessible to anyone with the link. Do not store secrets.
+		<footer class="mt-16 flex items-start gap-2 pb-8 text-left text-xs/5 text-slate-500 dark:text-slate-400">
+			<Info class="mt-0.5 size-4 shrink-0 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+			<p>Boards are unlisted and accessible to anyone with the link. Do not store secrets.</p>
 		</footer>
 	</div>
