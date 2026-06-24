@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isBoardId(value) {
+      return value is string
+        && value.size() >= 1
+        && value.size() <= 64
+        && value.matches('^[a-z0-9-]+$');
+    }
+
+    match /boards/{boardId} {
+      allow get: if isBoardId(boardId);
+      allow list, create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
