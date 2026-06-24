@@ -912,7 +912,8 @@
 	}
 
 	:global(html.dark article code) {
-		background-color: rgb(15 23 42);
+		background-color: rgb(30 41 59);
+		box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
 		color: rgb(226 232 240);
 	}
 
