@@ -408,7 +408,6 @@
 		const useDark = selectedTheme === "dark" || (selectedTheme === "system" && prefersDark);
 
 		document.documentElement.classList.toggle("dark", useDark);
-		document.documentElement.style.colorScheme = useDark ? "dark" : "light";
 	}
 
 	function onCreateTaskPressed() {
