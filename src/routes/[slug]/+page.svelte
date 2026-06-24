@@ -607,7 +607,7 @@
 {#snippet menuButton(classes: string)}
 	<button
 		type="button"
-		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-950 ring-1 ring-slate-950/10 lg:size-8 lg:rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10 ${classes}`}
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-950 ring-1 ring-slate-950/10 transition-[background-color,box-shadow,scale] duration-200 active:scale-[0.96] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10 dark:hover:bg-slate-800 ${classes}`}
 		aria-label="Open boards menu"
 		aria-expanded={menuOpen}
 		onclick={toggleMenu}
@@ -625,7 +625,7 @@
 {#snippet settingsButton(classes: string)}
 	<button
 		type="button"
-		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-950 ring-1 ring-slate-950/10 lg:size-8 lg:rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10 ${classes}`}
+		class={`relative z-40 grid size-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-950 ring-1 ring-slate-950/10 transition-[background-color,box-shadow,scale] duration-200 active:scale-[0.96] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10 dark:hover:bg-slate-800 ${classes}`}
 		aria-label="Board settings"
 		aria-expanded={settingsOpen}
 		onclick={toggleSettings}
@@ -642,7 +642,7 @@
 
 {#snippet boardTitle(classes: string)}
 	<h1
-		class={`min-w-0 cursor-pointer truncate text-2xl font-semibold tracking-tight text-slate-950 hover:underline dark:text-slate-50 ${classes}`}
+		class={`min-w-0 cursor-pointer truncate text-2xl font-semibold tracking-tight text-balance text-slate-950 hover:underline dark:text-slate-50 ${classes}`}
 		onclick={() => copyToClipboard()}
 		role="none"
 	>
@@ -653,7 +653,7 @@
 {#snippet menuPanelContent(isMobile: boolean)}
 	<a
 		class={[
-			"mb-6 block rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800",
+			"mb-6 block rounded-2xl transition-colors duration-200 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:bg-slate-800",
 			isMobile ? "px-3 py-3" : "px-[10px] py-2"
 		]}
 		href={resolve("/")}
@@ -686,21 +686,21 @@
 	{#each menuItems as menuItem (menuItem)}
 		<div
 			class={[
-				"group/item mb-1 flex items-center text-slate-700 dark:text-slate-200",
+				"group/item mb-1 flex items-center text-slate-700 transition-colors duration-200 dark:text-slate-200",
 				isMobile ? "gap-2 rounded-2xl px-3 py-2 text-base/7" : "rounded-xl px-[10px] py-[6px] text-sm",
 				menuItem === data.boardId && "bg-slate-100 dark:bg-slate-800"
 			]}
 		>
-			<a class="block w-full align-middle group-hover/item:underline" href={resolve(`/${menuItem}`)}>
+			<a class="flex min-h-10 w-full items-center align-middle group-hover/item:underline" href={resolve(`/${menuItem}`)}>
 				#{menuItem}
 			</a>
 			<button
 				type="button"
 				class={[
-					"cursor-pointer text-slate-400 dark:text-slate-500 dark:hover:text-slate-300",
+					"cursor-pointer text-slate-400 transition-[background-color,color,scale] duration-200 active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-slate-500 dark:hover:text-slate-300",
 					isMobile
 						? "relative grid size-10 shrink-0 place-items-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
-						: "hidden group-hover/item:block"
+						: "hidden size-10 shrink-0 place-items-center rounded-xl hover:bg-slate-100 group-hover/item:grid dark:hover:bg-slate-800"
 				]}
 				aria-label={`Remove ${menuItem} from recent boards`}
 				onclick={() => removeRecentBoard(menuItem)}
@@ -723,7 +723,7 @@
 				name="expiration"
 				value={expirationSetting}
 				onchange={(event) => onExpirationChange(event)}
-				class="col-span-full row-start-1 appearance-none rounded-xl bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 ring-1 ring-slate-950/10 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
+				class="col-span-full row-start-1 min-h-10 appearance-none rounded-xl bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 ring-1 ring-slate-950/10 transition-shadow duration-200 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
 			>
 				{#each expirationOptions as option (option.value)}
 					<option value={option.value}>{option.name}</option>
@@ -742,7 +742,7 @@
 				name="theme"
 				value={selectedTheme}
 				onchange={(event) => onThemeChange(event)}
-				class="col-span-full row-start-1 appearance-none rounded-xl bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 ring-1 ring-slate-950/10 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
+				class="col-span-full row-start-1 min-h-10 appearance-none rounded-xl bg-white py-2 pr-8 pl-3 text-base/7 text-slate-950 ring-1 ring-slate-950/10 transition-shadow duration-200 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-600 sm:text-sm/6 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
 			>
 				{#each themeOptions as option (option.value)}
 					<option value={option.value}>{option.name}</option>
@@ -775,7 +775,7 @@
 </aside>
 
 <aside
-	class={`fixed inset-y-0 left-0 z-50 hidden h-dvh w-64 overflow-y-auto border-r border-slate-300 bg-white px-[14px] pt-4 pb-4 transition-transform duration-300 lg:block dark:border-white/10 dark:bg-slate-900 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
+	class={`fixed inset-y-0 left-0 z-50 hidden h-dvh w-64 overflow-y-auto bg-white px-[14px] pt-4 pb-4 shadow-[0_8px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-950/10 transition-transform duration-300 lg:block dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
 	onmouseleave={closeMenuOnDesktop}
 >
 	{@render menuPanelContent(false)}
@@ -788,7 +788,7 @@
 </aside>
 
 <aside
-	class={`fixed inset-y-0 right-0 z-50 hidden h-dvh w-72 overflow-y-auto border-l border-slate-300 bg-white px-4 pt-4 pb-4 transition-transform duration-300 lg:block dark:border-white/10 dark:bg-slate-900 ${settingsOpen ? "translate-x-0" : "translate-x-full"}`}
+	class={`fixed inset-y-0 right-0 z-50 hidden h-dvh w-72 overflow-y-auto bg-white px-4 pt-4 pb-4 shadow-[0_8px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-950/10 transition-transform duration-300 lg:block dark:bg-slate-900 dark:shadow-none dark:ring-white/10 ${settingsOpen ? "translate-x-0" : "translate-x-full"}`}
 	onmouseleave={closeSettingsOnDesktop}
 >
 	{@render settingsPanelContent("desktop-expiration", "desktop-theme")}
@@ -802,17 +802,17 @@
 				ondrop={(event) => onDrop(event, column.id)}
 				ondragover={(e) => e.preventDefault()}
 				role="none"
-				>
-					<div class="flex">
-						<p class="grow rounded-t-lg font-semibold text-slate-950 dark:text-slate-50">{column.name}</p>
-						{#if column.id === "todo" && tasks.length > 0 && tasks.length < boardTaskMaxCount}
-							<button
-								type="button"
-								class="rounded-lg text-slate-950 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
+			>
+				<div class="flex">
+					<p class="grow rounded-t-lg font-semibold text-slate-950 dark:text-slate-50">{column.name}</p>
+					{#if column.id === "todo" && tasks.length > 0 && tasks.length < boardTaskMaxCount}
+						<button
+							type="button"
+							class="grid size-6 place-items-center rounded-lg text-slate-950 transition-[background-color,scale] duration-200 active:scale-[0.96] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-slate-100 dark:hover:bg-slate-800"
 							aria-label="Add task"
 							onclick={() => onCreateTaskPressed()}
 						>
-							<Plus class="size-6" aria-hidden="true" />
+							<Plus class="size-5" aria-hidden="true" />
 						</button>
 					{/if}
 				</div>
@@ -820,7 +820,7 @@
 					{#if column.id === "todo"}
 						<div
 							contenteditable="plaintext-only"
-							class="selected my-3 box-border min-h-4 cursor-default rounded-2xl bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
+							class="selected my-3 box-border min-h-4 cursor-default rounded-2xl bg-white p-4 whitespace-pre-line text-pretty text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
 							class:hidden={!addTask && tasks.length !== 0}
 							onfocusin={() => { addTask = true; activeEditableElement = addTaskInput; }}
 							onfocusout={() => { addTask = false; activeEditableElement = undefined; }}
@@ -840,14 +840,14 @@
 								onblur={() => { task.editable = false; activeEditableElement = undefined; }}
 								oninput={(event) => onEditableInput(event)}
 								onpaste={(event) => onPaste(event)}
-								class="selected my-3 box-border min-h-4 skew-x-0 cursor-text rounded-2xl bg-white p-4 whitespace-pre-line text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
+								class="selected my-3 box-border min-h-4 skew-x-0 cursor-text rounded-2xl bg-white p-4 whitespace-pre-line text-pretty text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
 								bind:this={task.instance}
 								bind:innerText={task.title}
 								role="none"
 							></div>
 						{:else}
 							<div
-								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-2xl border-2 border-transparent bg-white p-[15px] whitespace-pre-line text-slate-700 ring-1 ring-slate-950/10 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10"
+								class="my-3 box-border min-h-[58px] skew-x-0 cursor-default rounded-2xl border-2 border-transparent bg-white p-[15px] whitespace-pre-line text-pretty text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-slate-950/10 transition-shadow duration-200 hover:shadow-[0_4px_14px_rgba(15,23,42,0.08)] dark:bg-slate-900 dark:text-slate-100 dark:shadow-none dark:ring-white/10"
 								draggable="true"
 								onclick={(event) => onTaskClicked(event, task)}
 								ondragstart={(event) => onDrag(event, task)}
