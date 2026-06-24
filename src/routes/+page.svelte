@@ -3,7 +3,7 @@
 	import { boardIdMaxLength } from "$lib/domain/useCase/boardLimits";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
-	import Info from "@lucide/svelte/icons/info";
+	import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 
 	let { data } = $props();
 
@@ -56,15 +56,15 @@
 		<li>Mind-dump.</li>
 	</ul>
 	<h2 class="mt-12 text-xl font-semibold text-slate-950 dark:text-slate-50">Features</h2>
-		<ul class="mx-auto mt-4 list-disc pl-8 text-slate-700 dark:text-slate-300">
-			<li>It's free!</li>
-			<li>No account required.</li>
-			<li>Share your board with the link.</li>
-			<li>Ephemeral boards.</li>
-			<li>Markdown support.</li>
-		</ul>
-		<footer class="mt-16 flex items-start gap-2 pb-8 text-left text-xs/5 text-slate-500 dark:text-slate-400">
-			<Info class="mt-0.5 size-4 shrink-0 text-slate-400 dark:text-slate-500" aria-hidden="true" />
-			<p>Boards are unlisted and accessible to anyone with the link. Do not store secrets.</p>
-		</footer>
-	</div>
+	<ul class="mx-auto mt-4 list-disc pl-8 text-slate-700 dark:text-slate-300">
+		<li>It's free!</li>
+		<li>No account required.</li>
+		<li>Share your board with the link.</li>
+		<li>Ephemeral boards.</li>
+		<li>Markdown support.</li>
+	</ul>
+	<footer class="mt-16 flex items-start gap-2 border-t border-slate-950/10 pt-4 pb-8 text-left text-base/6 text-pretty text-slate-500 sm:text-sm/5 dark:border-white/10 dark:text-slate-400">
+		<TriangleAlert class="size-4 h-lh shrink-0 stroke-slate-400 dark:stroke-slate-500" aria-hidden="true" />
+		<p>Boards are unlisted and accessible to anyone with the link. Do not store secrets.</p>
+	</footer>
+</div>
