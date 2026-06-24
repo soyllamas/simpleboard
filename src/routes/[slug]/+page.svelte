@@ -82,10 +82,12 @@
 	let currentBoardId = $state<string>();
 	let selectedExpiration = $state<ExpirationValue | undefined>();
 	let selectedTheme = $state<ThemeValue>("system");
+	let hasMounted = $state(false);
 	let expirationSetting = $derived(selectedExpiration ?? parseExpiration(data.expiration));
 	let themeMediaQuery: MediaQueryList | undefined;
 
 	onMount(async () => {
+		hasMounted = true;
 		nextTaskId = await _generateId();
 
 		// Request focus if tasks are empty
@@ -125,6 +127,7 @@
 	// svelte-ignore state_referenced_locally
 	let tasks = $state(data.tasks ?? []);
 	let today = $state(new Date());
+	let filteredTasks = $derived(tasks.filter((task) => isTaskVisibleToday(task, today)));
 
 	let nextTaskId = "";
 
@@ -138,7 +141,7 @@
 		listenToChanges(data.boardId);
 	});
 
-	let visibleTasks = $derived(tasks.filter((task) => isTaskVisibleToday(task, today)));
+	let visibleTasks = $derived(hasMounted ? filteredTasks : data.visibleTasks);
 	let todo = $derived(visibleTasks.filter((task) => task.status === "todo"));
 	let doing = $derived(visibleTasks.filter((task) => task.status === "doing"));
 	let done = $derived(visibleTasks.filter((task) => task.status === "done"));

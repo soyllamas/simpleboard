@@ -1,4 +1,5 @@
 import type { Task } from '$lib/domain/entity/task';
+import { isTaskVisibleToday } from '$lib/domain/useCase/taskVisibility';
 import { getBoardExpiration } from '$lib/server/board-expiration';
 import { firestore } from '$lib/server/firebase-admin';
 import type { PageServerLoad } from './$types';
@@ -9,6 +10,7 @@ export const load: PageServerLoad = async ({ params, setHeaders, url }) => {
 	});
 
 	const boardId = params.slug;
+	const today = new Date();
 	const snapshot = await firestore.doc(`boards/${boardId}`).get();
 	const tasks = (snapshot.get('tasks') ?? []).map((data: any) => {
 		return {
@@ -17,11 +19,13 @@ export const load: PageServerLoad = async ({ params, setHeaders, url }) => {
 			status: data.status,
 			updatedAt: toDateString(data.updatedAt)
 		};
-	});
+	}) as Task[];
+
 	return {
 		boardId: boardId,
 		expiration: getBoardExpiration(snapshot),
-		tasks: tasks as Task[],
+		tasks,
+		visibleTasks: tasks.filter((task) => isTaskVisibleToday(task, today)),
 		link: url.host + '/' + boardId
 	};
 };
