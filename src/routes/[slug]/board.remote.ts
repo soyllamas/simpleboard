@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { command } from '$app/server';
+import { error } from '@sveltejs/kit';
 import {
 	getBoardActivityFields,
 	getBoardExpirationFields,
@@ -7,6 +8,13 @@ import {
 } from '$lib/server/board-expiration';
 import { firestore } from '$lib/server/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import {
+	boardIdMaxLength,
+	boardIdPattern,
+	boardTaskMaxCount,
+	taskIdMaxLength,
+	taskTitleMaxLength
+} from '$lib/domain/useCase/boardLimits';
 
 type ServerTask = {
 	id: string;
@@ -15,33 +23,37 @@ type ServerTask = {
 	updatedAt?: Timestamp;
 };
 
+const boardIdSchema = v.pipe(
+	v.string(),
+	v.minLength(1),
+	v.maxLength(boardIdMaxLength),
+	v.regex(boardIdPattern)
+);
+const taskIdSchema = v.pipe(v.string(), v.minLength(1), v.maxLength(taskIdMaxLength));
+const taskTitleSchema = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(taskTitleMaxLength));
+const taskInputSchema = v.object({
+	id: taskIdSchema,
+	status: v.picklist(['todo', 'doing', 'done']),
+	title: taskTitleSchema
+});
+
 const taskSchema = v.object({
-	boardId: v.string(),
-	task: v.object({
-		id: v.string(),
-		status: v.picklist(['todo', 'doing', 'done']),
-		title: v.string()
-	})
+	boardId: boardIdSchema,
+	task: taskInputSchema
 });
 
 const tasksSchema = v.object({
-	boardId: v.string(),
-	tasks: v.array(
-		v.object({
-			id: v.string(),
-			status: v.picklist(['todo', 'doing', 'done']),
-			title: v.string()
-		})
-	)
+	boardId: boardIdSchema,
+	tasks: v.pipe(v.array(taskInputSchema), v.maxLength(boardTaskMaxCount))
 });
 
 const deleteTaskSchema = v.object({
-	boardId: v.string(),
-	taskId: v.string()
+	boardId: boardIdSchema,
+	taskId: taskIdSchema
 });
 
 const expirationSchema = v.object({
-	boardId: v.string(),
+	boardId: boardIdSchema,
 	expiration: v.picklist(['30', '90', 'never'])
 });
 
@@ -63,10 +75,18 @@ function normalizeTask(task: TaskInput, existingTask?: ServerTask, now = Timesta
 	return normalizedTask;
 }
 
+function assertCanAddTask(tasks: ServerTask[]) {
+	if (tasks.length >= boardTaskMaxCount) {
+		throw error(400, `Boards can have up to ${boardTaskMaxCount} tasks`);
+	}
+}
+
 export const createTask = command(taskSchema, async ({ boardId, task }) => {
 	const boardRef = firestore.doc(`boards/${boardId}`);
 	const snapshot = await boardRef.get();
 	const existingTasks = (snapshot.get('tasks') ?? []) as ServerTask[];
+
+	assertCanAddTask(existingTasks);
 
 	const normalizedTask = normalizeTask(task);
 	const updatedTasks = [normalizedTask, ...existingTasks];

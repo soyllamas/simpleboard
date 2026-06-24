@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { sanitize } from "$lib/domain/useCase/sanitize";
+	import { boardIdMaxLength } from "$lib/domain/useCase/boardLimits";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 
@@ -39,6 +40,7 @@
 				autocapitalize="none"
 				autocorrect="off"
 				spellcheck="false"
+				maxlength={boardIdMaxLength}
 				class="min-w-[8rem] grow bg-transparent py-2 pr-3 text-slate-700 outline-none dark:text-slate-100 dark:placeholder:text-slate-500"
 				onkeydown={(event) => onKeyDown(event)}
 				bind:value={boardId}
@@ -53,11 +55,14 @@
 		<li>Mind-dump.</li>
 	</ul>
 	<h2 class="mt-12 text-xl font-semibold text-slate-950 dark:text-slate-50">Features</h2>
-	<ul class="mx-auto mt-4 list-disc pl-8 text-slate-700 dark:text-slate-300">
-		<li>It's free!</li>
-		<li>No account required.</li>
-		<li>Share your board with the link.</li>
-		<li>Ephemeral boards.</li>
-		<li>Markdown support.</li>
-	</ul>
-</div>
+		<ul class="mx-auto mt-4 list-disc pl-8 text-slate-700 dark:text-slate-300">
+			<li>It's free!</li>
+			<li>No account required.</li>
+			<li>Share your board with the link.</li>
+			<li>Ephemeral boards.</li>
+			<li>Markdown support.</li>
+		</ul>
+		<footer class="mt-16 pb-8 text-center text-xs/5 text-slate-500 dark:text-slate-400">
+			Boards are unlisted and accessible to anyone with the link. Do not store secrets.
+		</footer>
+	</div>

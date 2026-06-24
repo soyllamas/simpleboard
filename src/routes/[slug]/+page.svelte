@@ -10,6 +10,11 @@
 	import EmojiPicker from "$lib/components/EmojiPicker.svelte";
 	import { detectExactMatch, resolveNodeOffset, type TriggerState } from "$lib/domain/useCase/emoji";
 	import { getTaskUpdatedAtTime, isTaskVisibleToday } from "$lib/domain/useCase/taskVisibility";
+	import {
+		boardTaskMaxCount,
+		normalizeTaskTitle,
+		taskTitleMaxLength
+	} from "$lib/domain/useCase/boardLimits";
 	import ChevronDown from "@lucide/svelte/icons/chevron-down";
 	import Menu from "@lucide/svelte/icons/menu";
 	import Plus from "@lucide/svelte/icons/plus";
@@ -295,10 +300,10 @@
 				console.error("Failed to delete task:", error);
 			}
 		} else {
-			task.title = task.title.trim();
+			task.title = normalizeTaskTitle(task.title);
 			task.updatedAt = new Date().toISOString();
 			tasks = tasks.map((t) =>
-				t.id === task.id ? { ...t, title: t.title.trim(), updatedAt: task.updatedAt } : t
+				t.id === task.id ? { ...t, title: normalizeTaskTitle(t.title), updatedAt: task.updatedAt } : t
 			) as any;
 
 			try {
@@ -343,13 +348,14 @@
 	}
 
 	async function _createTask(title: string) {
-		if (_isEmpty(title)) return;
+		const taskTitle = normalizeTaskTitle(title);
+		if (_isEmpty(taskTitle) || tasks.length >= boardTaskMaxCount) return;
 
 		const taskId = _getId();
 		const task = {
 			id: taskId,
 			status: "todo",
-			title: title.trim(),
+			title: taskTitle,
 			updatedAt: new Date().toISOString(),
 			editable: false,
 		} as Task;
@@ -428,10 +434,10 @@
 		return nextTaskId;
 	}
 
-	function _setCursorAtEnd() {
+	function _setCursorAtEnd(target: HTMLElement = addTaskInput!) {
 		const selection = window.getSelection();
 		const range = document.createRange();
-		range.selectNodeContents(addTaskInput!);
+		range.selectNodeContents(target);
 		range.collapse(false);
 		selection!.removeAllRanges();
 		selection!.addRange(range);
@@ -544,6 +550,11 @@
 
 	function onEditableInput(event: Event) {
 		const target = event.currentTarget as HTMLElement;
+		if (target.innerText.length > taskTitleMaxLength) {
+			target.innerText = target.innerText.slice(0, taskTitleMaxLength);
+			_setCursorAtEnd(target);
+		}
+
 		const match = detectExactMatch(target);
 		if (match) {
 			insertEmoji(target, match.emoji, match.triggerOffset, match.cursorOffset);
@@ -789,13 +800,13 @@
 				ondrop={(event) => onDrop(event, column.id)}
 				ondragover={(e) => e.preventDefault()}
 				role="none"
-			>
-				<div class="flex">
-					<p class="grow rounded-t-lg font-semibold text-slate-950 dark:text-slate-50">{column.name}</p>
-					{#if column.id === "todo" && tasks.length > 0}
-						<button
-							type="button"
-							class="rounded-lg text-slate-950 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
+				>
+					<div class="flex">
+						<p class="grow rounded-t-lg font-semibold text-slate-950 dark:text-slate-50">{column.name}</p>
+						{#if column.id === "todo" && tasks.length > 0 && tasks.length < boardTaskMaxCount}
+							<button
+								type="button"
+								class="rounded-lg text-slate-950 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
 							aria-label="Add task"
 							onclick={() => onCreateTaskPressed()}
 						>
