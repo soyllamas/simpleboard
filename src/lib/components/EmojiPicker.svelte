@@ -167,8 +167,10 @@
 		color: rgb(37 99 235);
 	}
 
-	:global(html.dark) ::highlight(emoji-query) {
-		background-color: rgb(30 64 175);
-		color: rgb(219 234 254);
+	@media (prefers-color-scheme: dark) {
+		::highlight(emoji-query) {
+			background-color: rgb(30 64 175);
+			color: rgb(219 234 254);
+		}
 	}
 </style>

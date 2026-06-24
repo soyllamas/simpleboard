@@ -38,10 +38,8 @@
 		name: string;
 	};
 
-	type ThemeValue = "system" | "light" | "dark";
-
 	type ThemeOption = {
-		value: ThemeValue;
+		value: "system" | "light" | "dark";
 		name: string;
 	};
 
@@ -78,10 +76,8 @@
 	let menuItems = $state<string[]>([]);
 	let currentBoardId = $state<string>();
 	let selectedExpiration = $state<ExpirationValue | undefined>();
-	let selectedTheme = $state<ThemeValue>("system");
 	let hasMounted = $state(false);
 	let expirationSetting = $derived(selectedExpiration ?? parseExpiration(data.expiration));
-	let themeMediaQuery: MediaQueryList | undefined;
 
 	onMount(async () => {
 		hasMounted = true;
@@ -105,10 +101,6 @@
 		stored = JSON.stringify($state.snapshot(menuItems));
 		localStorage.setItem("recent", stored);
 
-		themeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-		themeMediaQuery.addEventListener("change", applyTheme);
-		applyTheme();
-
 		refreshToday = setInterval(() => {
 			today = new Date();
 		}, 60_000);
@@ -117,7 +109,6 @@
 	onDestroy(() => {
 		unsubscribe?.();
 		clearInterval(refreshToday);
-		themeMediaQuery?.removeEventListener("change", applyTheme);
 	});
 
 	// svelte-ignore state_referenced_locally
@@ -392,14 +383,6 @@
 			selectedExpiration = oldExpiration;
 			console.error("Failed to update expiration:", error);
 		}
-	}
-
-	function applyTheme() {
-		if (!browser) return;
-
-		const useDark = themeMediaQuery?.matches ?? window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-		document.documentElement.classList.toggle("dark", useDark);
 	}
 
 	function onCreateTaskPressed() {
@@ -725,7 +708,7 @@
 			<select
 				id={themeId}
 				name="theme"
-				value={selectedTheme}
+				value="system"
 				disabled
 				class="col-span-full row-start-1 min-h-10 appearance-none rounded-xl bg-slate-50 py-2 pr-8 pl-3 text-base/7 text-slate-500 ring-1 ring-slate-950/10 sm:text-sm/6 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10"
 			>
@@ -892,17 +875,19 @@
 		text-decoration: underline;
 	}
 
-	:global(html.dark) .selected {
-		border-color: rgb(59 130 246);
-	}
+	@media (prefers-color-scheme: dark) {
+		.selected {
+			border-color: rgb(59 130 246);
+		}
 
-	:global(html.dark article code) {
-		background-color: rgb(30 41 59);
-		box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
-		color: rgb(226 232 240);
-	}
+		:global(article code) {
+			background-color: rgb(30 41 59);
+			box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+			color: rgb(226 232 240);
+		}
 
-	:global(html.dark article a) {
-		color: rgb(96 165 250);
+		:global(article a) {
+			color: rgb(96 165 250);
+		}
 	}
 </style>

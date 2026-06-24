@@ -1,32 +1,28 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
+	--page-background: rgb(255 255 255);
+	--page-foreground: rgb(15 23 42);
 	--mobile-browser-bottom-space: calc(6rem + env(safe-area-inset-bottom));
-}
-
-html {
-	overflow-x: clip;
-	overflow-y: auto;
 	color-scheme: light;
 }
 
-html.dark {
-	color-scheme: dark;
+@media (prefers-color-scheme: dark) {
+	:root {
+		--page-background: rgb(2 6 23);
+		--page-foreground: rgb(226 232 240);
+		color-scheme: dark;
+	}
 }
 
+html,
 body {
+	min-height: 100%;
 	overflow-x: clip;
-	background-color: rgb(255 255 255);
-	color: rgb(15 23 42);
+	background-color: var(--page-background);
+	color: var(--page-foreground);
 }
 
 .svelte-body {
 	display: contents;
-}
-
-html.dark body {
-	background-color: rgb(2 6 23);
-	color: rgb(226 232 240);
 }
