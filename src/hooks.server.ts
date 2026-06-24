@@ -1,4 +1,5 @@
-import {env} from "$env/dynamic/private";
+import {env as privateEnv} from "$env/dynamic/private";
+import {env as publicEnv} from "$env/dynamic/public";
 import {redirect, type Handle, type HandleServerError} from "@sveltejs/kit";
 import {sequence} from "@sveltejs/kit/hooks";
 import {createPostHogDrain} from "evlog/posthog";
@@ -6,12 +7,12 @@ import {createEvlogHooks} from "evlog/sveltekit";
 import {sanitize} from "$lib/domain/useCase/sanitize";
 import {captureServerException} from "$lib/server/posthog";
 
-const posthogHost = env.POSTHOG_HOST || "https://us.i.posthog.com";
+const posthogHost = privateEnv.POSTHOG_HOST || "https://us.i.posthog.com";
 
 const evlogHooks = createEvlogHooks({
-    drain: env.POSTHOG_API_KEY
+    drain: privateEnv.POSTHOG_API_KEY
         ? createPostHogDrain({
-            apiKey: env.POSTHOG_API_KEY,
+            apiKey: privateEnv.POSTHOG_API_KEY,
             host: posthogHost,
         })
         : undefined,
@@ -20,6 +21,7 @@ const evlogHooks = createEvlogHooks({
 
 const securityHeaders: Handle = async ({event, resolve}) => {
     const response = await resolve(event);
+    const cspReportUrl = getCspReportUrl();
 
     response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     response.headers.set("X-Content-Type-Options", "nosniff");
@@ -29,8 +31,34 @@ const securityHeaders: Handle = async ({event, resolve}) => {
         "camera=(), geolocation=(), microphone=(), payment=(), usb=()"
     );
 
+    if (cspReportUrl) {
+        const contentSecurityPolicy = response.headers.get("Content-Security-Policy");
+
+        response.headers.set("Reporting-Endpoints", `posthog="${cspReportUrl}"`);
+
+        if (contentSecurityPolicy) {
+            response.headers.set(
+                "Content-Security-Policy",
+                `${contentSecurityPolicy}; report-uri ${cspReportUrl}; report-to posthog`
+            );
+        }
+    }
+
     return response;
 };
+
+function getCspReportUrl() {
+    const projectToken = publicEnv.PUBLIC_POSTHOG_PROJECT_TOKEN;
+    if (!projectToken) return;
+
+    const url = new URL("/report/", publicEnv.PUBLIC_POSTHOG_HOST || posthogHost);
+    url.searchParams.set("token", projectToken);
+
+    const version = privateEnv.POSTHOG_CSP_VERSION || "1";
+    if (version) url.searchParams.set("v", version);
+
+    return url.toString();
+}
 
 const sanitizePath: Handle = async ({event, resolve}) => {
     const slug = event.url.pathname;
