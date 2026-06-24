@@ -1,9 +1,13 @@
 const { initializeApp, getApps, getApp } = await import("@firebase/app");
 const { getFirestore } = await import("@firebase/firestore");
 
-import { PUBLIC_FIREBASE_CONFIG } from "$env/static/public";
+import { env } from "$env/dynamic/public";
 
-const config = JSON.parse(atob(PUBLIC_FIREBASE_CONFIG));
+if (!env.PUBLIC_FIREBASE_CONFIG) {
+    throw new Error("PUBLIC_FIREBASE_CONFIG is required");
+}
+
+const config = JSON.parse(atob(env.PUBLIC_FIREBASE_CONFIG));
 const app = getApps().length === 0 ? initializeApp(config) : getApp();
 const db = getFirestore(app);
 
