@@ -3,8 +3,49 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="color-scheme" content="light dark" />
-		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
+		<meta name="theme-color" content="#ffffff" />
+		<script nonce="%sveltekit.nonce%">
+			(() => {
+				const query = matchMedia("(prefers-color-scheme: dark)");
+				const themes = {
+					light: {
+						background: "#ffffff",
+						foreground: "#0f172a",
+						colorScheme: "light"
+					},
+					dark: {
+						background: "#020617",
+						foreground: "#e2e8f0",
+						colorScheme: "dark"
+					}
+				};
+
+				function syncSystemTheme() {
+					const theme = themes[query.matches ? "dark" : "light"];
+					const root = document.documentElement;
+					root.style.setProperty("--page-background", theme.background);
+					root.style.setProperty("--page-foreground", theme.foreground);
+					root.style.backgroundColor = theme.background;
+					root.style.colorScheme = theme.colorScheme;
+
+					document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme.background);
+
+					if (document.body) {
+						document.body.style.backgroundColor = theme.background;
+						document.body.style.color = theme.foreground;
+					}
+				}
+
+				syncSystemTheme();
+				document.addEventListener("DOMContentLoaded", syncSystemTheme, { once: true });
+
+				if (typeof query.addEventListener === "function") {
+					query.addEventListener("change", syncSystemTheme);
+				} else {
+					query.addListener(syncSystemTheme);
+				}
+			})();
+		</script>
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		%sveltekit.head%
